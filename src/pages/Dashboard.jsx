@@ -59,41 +59,62 @@ export default function Dashboard() {
           </button>
         </div>
 
-        <nav className="flex-1 space-y-1 p-4">
-          {NAV.map((item) => {
-            const Icon = item.icon
-            const active = tab === item.id
-            return (
-              <button
-                key={item.id}
-                onClick={() => setTab(item.id)}
-                className={cn(
-                  'flex w-full items-center gap-3 border-2 px-4 py-3 text-left font-mono text-xs font-bold uppercase tracking-widest transition-colors',
-                  active
-                    ? 'border-kick/40 bg-kick/10 text-kick'
-                    : 'border-transparent text-muted-foreground hover:bg-foreground/5 hover:text-foreground',
-                )}
-              >
-                <Icon className="size-4 shrink-0" strokeWidth={2.5} />
-                <span className="flex-1">{item.label}</span>
-                {item.soon && (
-                  <span className="bg-foreground/10 px-1.5 py-0.5 text-[9px] tracking-wider text-muted-foreground">
-                    Soon
-                  </span>
-                )}
-              </button>
-            )
-          })}
+        <nav className="flex-1 space-y-5 p-4">
+          {/* Editor — the hero action. Deliberately loud (filled kick green +
+              glow) and set apart from the muted nav below so it's the obvious
+              thing to click. */}
+          <button
+            onClick={() => navigate('/editor')}
+            className="group flex w-full items-center gap-3 border-2 border-kick bg-kick px-4 py-4 text-left text-black shadow-[0_0_28px_-8px_rgba(83,252,24,0.8)] transition-all hover:bg-kick-hover"
+          >
+            <div className="flex size-10 shrink-0 items-center justify-center bg-black/15">
+              <Clapperboard className="size-5" strokeWidth={2.5} />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="font-display text-lg uppercase leading-none tracking-tight">Editor</div>
+              <div className="mt-1 font-mono text-[10px] font-bold uppercase tracking-wider text-black/60">
+                Make a clip
+              </div>
+            </div>
+            <Plus
+              className="size-4 shrink-0 transition-transform group-hover:rotate-90"
+              strokeWidth={3}
+            />
+          </button>
+
+          <div className="space-y-1">
+            <div className="px-4 pb-1 font-mono text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">
+              Menu
+            </div>
+            {NAV.map((item) => {
+              const Icon = item.icon
+              const active = tab === item.id
+              return (
+                <button
+                  key={item.id}
+                  onClick={() => setTab(item.id)}
+                  className={cn(
+                    'flex w-full items-center gap-3 border-2 px-4 py-3 text-left font-mono text-xs font-bold uppercase tracking-widest transition-colors',
+                    active
+                      ? 'border-kick/40 bg-kick/10 text-kick'
+                      : 'border-transparent text-muted-foreground hover:bg-foreground/5 hover:text-foreground',
+                  )}
+                >
+                  <Icon className="size-4 shrink-0" strokeWidth={2.5} />
+                  <span className="flex-1">{item.label}</span>
+                  {item.soon && (
+                    <span className="bg-foreground/10 px-1.5 py-0.5 text-[9px] tracking-wider text-muted-foreground">
+                      Soon
+                    </span>
+                  )}
+                </button>
+              )
+            })}
+          </div>
         </nav>
 
         <div className="border-t-2 border-border p-4">
-          <Button
-            onClick={() => navigate('/editor')}
-            className="h-11 w-full rounded-none bg-kick font-bold uppercase tracking-wide text-black hover:bg-kick-hover"
-          >
-            <Plus className="size-4" strokeWidth={3} /> New Clip
-          </Button>
-          <div className="mt-4 flex items-center gap-3 px-1">
+          <div className="flex items-center gap-3 px-1">
             <div className="flex size-9 items-center justify-center bg-foreground/10 font-display text-sm text-muted-foreground">
               ?
             </div>
