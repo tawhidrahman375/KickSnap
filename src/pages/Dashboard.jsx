@@ -54,9 +54,9 @@ export default function Dashboard() {
       {/* Sidebar */}
       <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r-2 border-border bg-card/40 md:flex">
         <div className="flex h-20 items-center border-b-2 border-border px-6">
-          <Link to="/" className="flex items-center">
+          <button onClick={() => setTab('overview')} className="flex items-center" title="Dashboard">
             <Logo className="h-8" />
-          </Link>
+          </button>
         </div>
 
         <nav className="flex-1 space-y-1 p-4">
@@ -112,9 +112,9 @@ export default function Dashboard() {
         {/* Top bar (mobile nav + credits) */}
         <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b-2 border-border bg-background/90 px-6 backdrop-blur-md sm:px-10">
           <div className="flex items-center gap-3 md:hidden">
-            <Link to="/">
+            <button onClick={() => setTab('overview')}>
               <Logo className="h-7" />
-            </Link>
+            </button>
           </div>
           <div className="hidden font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground md:block">
             {NAV.find((n) => n.id === tab)?.label}

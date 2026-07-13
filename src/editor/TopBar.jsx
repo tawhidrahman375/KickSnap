@@ -16,13 +16,15 @@ export default function TopBar({ onExport }) {
     <header className="flex h-16 shrink-0 items-center justify-between border-b-2 border-border bg-background px-4">
       <div className="flex items-center gap-3">
         <Link
-          to="/"
+          to="/dashboard"
           className="flex size-9 items-center justify-center border-2 border-border text-muted-foreground transition-colors hover:border-kick hover:text-foreground"
-          title="Back"
+          title="Dashboard"
         >
           <ChevronLeft className="size-5" strokeWidth={2.5} />
         </Link>
-        <Logo className="hidden h-7 sm:block" />
+        <Link to="/dashboard" title="Dashboard" className="hidden sm:block">
+          <Logo className="h-7" />
+        </Link>
         <span className="ml-2 hidden border-2 border-border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground md:inline-block">
           {formatSpec.id === 'square' ? '1:1' : '9:16'} · {FORMATS[state.format].height}p · H.264
         </span>
