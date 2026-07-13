@@ -46,8 +46,12 @@ function captionStyle(t) {
       fill: {
         color: eff.box.text,
         background: eff.box.fill,
-        padding: '0.08em 0.32em',
-        borderRadius: '0.2em',
+        // Per-line boxes that hug each line's text (TikTok style); the generous
+        // vertical padding makes adjacent line-boxes overlap so the rows merge
+        // into one connected shape with no gaps between them. Tight padding +
+        // small radius keep the merged block crisp instead of pill-like.
+        padding: '0.14em 0.26em',
+        borderRadius: '0.14em',
         WebkitBoxDecorationBreak: 'clone',
         boxDecorationBreak: 'clone',
       },
@@ -200,11 +204,11 @@ export default function TextLayer({ containerRef }) {
             style={{ ...font, ...fill, display: 'inline-block', maxWidth: '90cqw', minWidth: '1ch', outline: 'none', caretColor: '#53fc18' }}
           />
         ) : t.value ? (
-          // display: inline span so box-decoration-break clones the white box
-          // onto each wrapped line (the TikTok boxed look).
+          // inline by default; the white-box style overrides display via `fill`
+          // (inline-block) so the whole caption sits inside one grouped box.
           <span
             className="[&_img]:inline-block [&_img]:h-[1em] [&_img]:w-[1em] [&_img]:-translate-y-[0.14em]"
-            style={{ ...font, ...fill, display: 'inline' }}
+            style={{ ...font, display: 'inline', ...fill }}
             dangerouslySetInnerHTML={{ __html: toTwemojiHtml(t.value) }}
           />
         ) : (

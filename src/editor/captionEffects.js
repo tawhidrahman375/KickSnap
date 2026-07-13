@@ -14,7 +14,7 @@
  *   stroke    { color, width } — width in em, or 'outlineWidth' to track the slider
  *   shadow    { dx, dy, blur, color } — hard drop shadow, offsets/blur in em
  *   glow      { blur, color, passes } — luminous halo, blur in em, passes = layers
- *   box       { fill, text } — per-line rounded box (the TikTok white-box look)
+ *   box       { fill, text } — one rounded box around the whole caption (TikTok white-box look)
  */
 export const CAPTION_EFFECTS = {
   outline: {
@@ -25,7 +25,7 @@ export const CAPTION_EFFECTS = {
   },
   background: {
     label: 'White box',
-    weight: 700,
+    weight: 800,
     box: { fill: '#fff', text: '#111' },
   },
   shadow: {

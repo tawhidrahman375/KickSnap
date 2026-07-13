@@ -257,23 +257,36 @@ export function drawCaption(
   }
 
   if (eff.box) {
-    const padX = fontPx * 0.32
-    const boxH = fontPx * 1.18
-    const radius = fontPx * 0.2
-    lines.forEach((line, i) => {
-      if (!line) return
+    const padX = fontPx * 0.26
+    const padY = fontPx * 0.16
+    const radius = fontPx * 0.14
+    // Each line gets its own box hugging that line's text (TikTok style). The
+    // box extends padY beyond the line top and bottom so adjacent rows overlap
+    // and merge into one connected shape with no gap. Mirrors the DOM
+    // box-decoration-break clone (padY == the 0.16em vertical padding there).
+    const boxH = lineH + padY * 2
+    const lineData = lines.map((line) => {
+      const tokens = line ? tokenizeCaption(line) : []
+      return { tokens, w: tokens.length ? measureLine(tokens) : 0 }
+    })
+    // Pass 1: all boxes first, so an overlapping box never paints over the
+    // previous line's text (the browser paints all backgrounds behind all text).
+    ctx.fillStyle = eff.box.fill
+    lineData.forEach((d, i) => {
+      if (!d.tokens.length) return
       const ly = startY + i * lineH
-      const tokens = tokenizeCaption(line)
-      const w = measureLine(tokens)
-      const left = cx - w / 2
-      // Pass 1: white rounded box hugging the line (box-decoration-break mirror).
-      ctx.fillStyle = eff.box.fill
-      roundRectPath(ctx, left - padX, ly - boxH / 2, w + padX * 2, boxH, radius)
+      const left = cx - d.w / 2
+      roundRectPath(ctx, left - padX, ly - boxH / 2, d.w + padX * 2, boxH, radius)
       ctx.fill()
-      // Pass 2: text + emoji on top.
+    })
+    // Pass 2: each line's text + emoji, centred, on top of the boxes.
+    lineData.forEach((d, i) => {
+      if (!d.tokens.length) return
+      const ly = startY + i * lineH
+      const left = cx - d.w / 2
       ctx.fillStyle = eff.box.text
-      drawText(tokens, left, ly, (v, tx, ty) => ctx.fillText(v, tx, ty))
-      drawEmoji(tokens, left, ly)
+      drawText(d.tokens, left, ly, (v, tx, ty) => ctx.fillText(v, tx, ty))
+      drawEmoji(d.tokens, left, ly)
     })
   } else {
     // Effect glyphs, drawn back-to-front to mirror the DOM paint order:
