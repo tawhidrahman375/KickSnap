@@ -1,0 +1,292 @@
+import { useCallback, useEffect, useRef, useState } from 'react'
+import { useEditor } from './EditorContext'
+import { PlaybackProvider } from './PlaybackContext'
+import { exportClip } from './exportClip'
+import { locate, segDuration, segmentOffsets, timelineTime, totalDuration } from './segments'
+import TopBar from './TopBar'
+import Sidebar from './Sidebar'
+import Preview from './Preview'
+import Timeline from './Timeline'
+import ExportOverlay from './ExportOverlay'
+import DiscordReward from './DiscordReward'
+
+export default function EditorShell() {
+  const { state, dispatch } = useEditor()
+  const videoRef = useRef(null)
+  const [currentTime, setCurrentTimeState] = useState(0)
+  const [playing, setPlaying] = useState(false)
+
+  const segments = state.segments
+  const total = totalDuration(segments)
+
+  // Which segment the playhead is currently inside. A source range can appear
+  // more than once (duplicated clip), so we can't derive this from the video's
+  // time alone — we track it explicitly.
+  const activeIndexRef = useRef(0)
+  const timeRef = useRef(0)
+  // True while a trim head is being dragged, so the playback timeupdate handler
+  // doesn't fight the live preview seek.
+  const trimmingRef = useRef(false)
+  const setCurrentTime = useCallback((t) => {
+    timeRef.current = t
+    setCurrentTimeState(t)
+  }, [])
+
+  // Seek by TIMELINE time (0..total): map to a segment + source time, move the
+  // <video>, and remember which segment we landed in.
+  const seek = useCallback(
+    (tTimeline) => {
+      const v = videoRef.current
+      const t = Math.min(total, Math.max(0, tTimeline))
+      const { index, sourceTime } = locate(segments, t)
+      activeIndexRef.current = index
+      if (v) v.currentTime = sourceTime
+      setCurrentTime(t)
+    },
+    [segments, total, setCurrentTime],
+  )
+
+  const togglePlay = useCallback(() => {
+    const v = videoRef.current
+    if (!v) return
+    if (v.paused) {
+      if (timeRef.current >= total - 0.05) seek(0)
+      v.play().catch(() => {})
+      setPlaying(true)
+    } else {
+      v.pause()
+      setPlaying(false)
+    }
+  }, [total, seek])
+
+  // Playback loop across segments: advance to the next segment at its end, loop
+  // back to the start after the last one.
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    function onTime() {
+      if (trimmingRef.current) return // trim head is driving the preview
+      const segs = state.segments
+      let idx = activeIndexRef.current
+      let seg = segs[idx]
+      if (!seg) return
+      if (v.currentTime >= seg.out - 0.03) {
+        if (idx < segs.length - 1) {
+          idx += 1
+          activeIndexRef.current = idx
+          const nextIn = segs[idx].in
+          if (Math.abs(v.currentTime - nextIn) > 0.05) v.currentTime = nextIn
+        } else {
+          idx = 0
+          activeIndexRef.current = 0
+          v.currentTime = segs[0].in
+        }
+      }
+      setCurrentTime(timelineTime(segs, activeIndexRef.current, v.currentTime))
+    }
+    function onPause() {
+      setPlaying(false)
+    }
+    v.addEventListener('timeupdate', onTime)
+    v.addEventListener('pause', onPause)
+    return () => {
+      v.removeEventListener('timeupdate', onTime)
+      v.removeEventListener('pause', onPause)
+    }
+  }, [state.segments, state.clip, state.format, state.effect, setCurrentTime])
+
+  // Keep audio in sync with the volume control. Re-applied when the <video>
+  // element remounts (format/effect switches swap the element).
+  useEffect(() => {
+    const v = videoRef.current
+    if (!v) return
+    v.muted = state.audio.muted
+    v.volume = state.audio.muted ? 0 : state.audio.volume
+  }, [state.audio, state.clip, state.format, state.effect])
+
+  // Segments changed (split / duplicate / delete / trim) — clamp the playhead
+  // to the new total and resync the video to the right source frame.
+  useEffect(() => {
+    const t = Math.min(timeRef.current, totalDuration(state.segments))
+    const { index, sourceTime } = locate(state.segments, t)
+    activeIndexRef.current = index
+    const v = videoRef.current
+    // While a trim head is dragging, onTrimPreview owns the video frame — don't
+    // yank it back to the playhead on every SET_SEGMENT.
+    if (v && v.paused && !trimmingRef.current) v.currentTime = sourceTime
+    setCurrentTime(t)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [state.segments])
+
+  // --- scrub audio: play a short audible burst as the playhead is dragged ---
+  const scrubTimer = useRef(null)
+  const wasPlayingRef = useRef(false)
+  const onScrubStart = useCallback(() => {
+    const v = videoRef.current
+    wasPlayingRef.current = v ? !v.paused : false
+  }, [])
+  const onScrub = useCallback(
+    (t) => {
+      seek(t)
+      const v = videoRef.current
+      if (!v) return
+      if (v.paused) v.play().catch(() => {})
+      clearTimeout(scrubTimer.current)
+      scrubTimer.current = setTimeout(() => {
+        const vv = videoRef.current
+        if (vv && !wasPlayingRef.current) vv.pause()
+      }, 150)
+    },
+    [seek],
+  )
+  const onScrubEnd = useCallback(() => {
+    clearTimeout(scrubTimer.current)
+    const v = videoRef.current
+    if (v && !wasPlayingRef.current) v.pause()
+  }, [])
+
+  // --- trim heads: live-preview the in/out source frame as a head is dragged,
+  // CapCut-style, then leave the playhead parked on the trimmed edge. ---
+  const onTrimPreview = useCallback((sourceTime) => {
+    const v = videoRef.current
+    if (!v) return
+    trimmingRef.current = true
+    if (!v.paused) {
+      v.pause()
+      setPlaying(false)
+    }
+    try {
+      v.currentTime = sourceTime
+    } catch {
+      /* seeking out of range mid-load — ignore */
+    }
+  }, [])
+  const onTrimEnd = useCallback(
+    (segId, side) => {
+      trimmingRef.current = false
+      const segs = state.segments
+      const idx = segs.findIndex((s) => s.id === segId)
+      if (idx < 0) return
+      const offs = segmentOffsets(segs)
+      // Park the playhead on the edge we just moved so the preview holds it.
+      const edge = side === 'in' ? offs[idx] + 0.001 : offs[idx] + segDuration(segs[idx]) - 0.001
+      seek(edge)
+    },
+    [state.segments, seek],
+  )
+
+  // --- keyboard shortcuts (CapCut-ish) ---
+  useEffect(() => {
+    function onKey(e) {
+      const t = e.target
+      if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
+      // Undo / redo — Ctrl/Cmd+Z, Ctrl/Cmd+Shift+Z or Ctrl+Y.
+      if ((e.metaKey || e.ctrlKey) && !e.altKey) {
+        const k = e.key.toLowerCase()
+        if (k === 'z') {
+          e.preventDefault()
+          dispatch({ type: e.shiftKey ? 'REDO' : 'UNDO' })
+          return
+        }
+        if (k === 'y') {
+          e.preventDefault()
+          dispatch({ type: 'REDO' })
+          return
+        }
+      }
+      if (e.metaKey || e.ctrlKey || e.altKey) return
+      if (!state.clip) return
+      const step = e.shiftKey ? 1 : 0.1
+      switch (e.key) {
+        case ' ':
+        case 'k':
+          e.preventDefault()
+          togglePlay()
+          break
+        case 's':
+          dispatch({ type: 'SPLIT_SEGMENT', time: timeRef.current })
+          break
+        case 'q':
+          dispatch({ type: 'TRIM_TO_PLAYHEAD', side: 'in', time: timeRef.current })
+          break
+        case 'w':
+          dispatch({ type: 'TRIM_TO_PLAYHEAD', side: 'out', time: timeRef.current })
+          break
+        case 'r':
+          dispatch({ type: 'RESET_TRIM' })
+          break
+        case 'd':
+          dispatch({ type: 'DUPLICATE_SEGMENT' })
+          break
+        case 'Delete':
+        case 'Backspace':
+          dispatch({ type: 'DELETE_SEGMENT' })
+          break
+        case 'n':
+          dispatch({ type: 'TOGGLE_SNAP' })
+          break
+        case 'm':
+          dispatch({ type: 'SET_AUDIO', patch: { muted: !state.audio.muted } })
+          break
+        case 'ArrowLeft':
+          e.preventDefault()
+          seek(Math.max(0, timeRef.current - step))
+          break
+        case 'ArrowRight':
+          e.preventDefault()
+          seek(Math.min(total, timeRef.current + step))
+          break
+        case 'Escape':
+          dispatch({ type: 'SELECT_ELEMENT', element: null })
+          break
+        default:
+          break
+      }
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [togglePlay, seek, dispatch, state.clip, state.audio.muted, total])
+
+  async function handleExport() {
+    const v = videoRef.current
+    v?.pause()
+    setPlaying(false)
+    dispatch({ type: 'EXPORT_START' })
+    try {
+      const result = await exportClip(state.file, state, (p) =>
+        dispatch({ type: 'EXPORT_PROGRESS', progress: p }),
+      )
+      dispatch({ type: 'EXPORT_DONE', result })
+    } catch (err) {
+      console.error('[KickSnap] export failed', err)
+      dispatch({ type: 'EXPORT_ERROR', error: err?.message || 'Something went wrong during export.' })
+    }
+  }
+
+  return (
+    <PlaybackProvider value={{ currentTime, playing, total, seek, togglePlay }}>
+      <div className="flex h-svh flex-col overflow-hidden bg-background">
+        <TopBar onExport={handleExport} />
+        <div className="flex min-h-0 flex-1">
+          <Sidebar />
+          <div className="flex min-w-0 flex-1 flex-col">
+            <Preview videoRef={videoRef} />
+            <Timeline
+              currentTime={currentTime}
+              playing={playing}
+              total={total}
+              onTogglePlay={togglePlay}
+              onScrubStart={onScrubStart}
+              onScrub={onScrub}
+              onScrubEnd={onScrubEnd}
+              onTrimPreview={onTrimPreview}
+              onTrimEnd={onTrimEnd}
+            />
+          </div>
+        </div>
+      </div>
+      <ExportOverlay />
+      <DiscordReward />
+    </PlaybackProvider>
+  )
+}

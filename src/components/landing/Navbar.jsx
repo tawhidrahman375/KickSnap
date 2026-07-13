@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react'
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
 import { cn } from '@/lib/utils'
 
-const DISCORD_URL = 'https://discord.gg/DT7HvKQ9Gw'
+const DISCORD_URL = 'https://discord.gg/DT7HvKQ9G'
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
@@ -15,6 +15,7 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const navigate = useNavigate()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -34,7 +35,7 @@ export default function Navbar() {
     >
       <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6 sm:px-8">
         <Link to="/" className="flex items-center gap-2">
-          <Logo className="text-3xl" />
+          <Logo className="h-9" />
         </Link>
 
         <div className="hidden items-center gap-9 md:flex">
@@ -68,6 +69,7 @@ export default function Navbar() {
           </Button>
           <Button
             size="lg"
+            onClick={() => navigate('/editor')}
             className="h-11 rounded-none bg-kick px-6 text-sm font-bold uppercase tracking-wide text-black hover:bg-kick-hover"
           >
             Get Started

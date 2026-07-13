@@ -90,7 +90,7 @@ export default function LiveDemo() {
                 </div>
                 <div className="border-2 border-border bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
                   Effect
-                  <div className="mt-1 text-sm font-bold text-foreground">Blur bars</div>
+                  <div className="mt-1 text-sm font-bold text-foreground">Blurred BG</div>
                 </div>
               </div>
             </div>

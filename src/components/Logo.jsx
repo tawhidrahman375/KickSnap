@@ -1,18 +1,17 @@
 import { cn } from '@/lib/utils'
 
 /**
- * KickSnap wordmark. "Kick" in brand green, "Snap" in foreground.
+ * KickSnap wordmark — the real brand lockup (icon + "KickSnap"), keyed to a
+ * transparent background so it blends on any dark surface. Size it with a height
+ * utility (e.g. `h-9`); width scales automatically.
  */
 export default function Logo({ className }) {
   return (
-    <span
-      className={cn(
-        'text-2xl font-extrabold tracking-tight select-none',
-        className,
-      )}
-    >
-      <span className="text-kick">Kick</span>
-      <span className="text-foreground">Snap</span>
-    </span>
+    <img
+      src="/wordmark.png"
+      alt="KickSnap"
+      draggable={false}
+      className={cn('h-7 w-auto select-none', className)}
+    />
   )
 }

@@ -1,7 +1,18 @@
 @import "tailwindcss";
 @import "tw-animate-css";
-@import "@fontsource-variable/geist";
+@import "@fontsource-variable/figtree";
 @import "@fontsource/anton";
+
+/* TikTok Sans — variable font (OFL), self-hosted */
+@font-face {
+  font-family: 'TikTok Sans';
+  src: url('./fonts/TikTokSans-VF.ttf') format('truetype-variations');
+  font-weight: 300 900;
+  font-stretch: 75% 125%;
+  font-style: normal;
+  font-display: swap;
+}
+@import "@fontsource-variable/montserrat"; /* TikTok-style caption font */
 
 @custom-variant dark (&:is(.dark *));
 
@@ -105,9 +116,9 @@
 /*  Theme mapping                                                      */
 /* ------------------------------------------------------------------ */
 @theme inline {
-  --font-sans: 'Geist Variable', system-ui, sans-serif;
-  --font-heading: 'Geist Variable', system-ui, sans-serif;
-  --font-display: 'Anton', 'Geist Variable', system-ui, sans-serif;
+  --font-sans: 'TikTok Sans', system-ui, sans-serif;
+  --font-heading: 'TikTok Sans', system-ui, sans-serif;
+  --font-display: 'Anton', 'TikTok Sans', system-ui, sans-serif;
 
   --color-kick: var(--kick-green);
   --color-kick-hover: var(--kick-green-hover);
@@ -167,4 +178,76 @@
     margin: 0;
     min-height: 100svh;
   }
+}
+
+/* ------------------------------------------------------------------ */
+/*  Legal pages (privacy / terms / cookies) — rendered from markdown   */
+/* ------------------------------------------------------------------ */
+.legal-prose {
+  color: var(--foreground);
+  line-height: 1.7;
+  font-size: 0.95rem;
+}
+.legal-prose h1 {
+  font-family: "Anton", sans-serif;
+  font-size: clamp(1.9rem, 5vw, 2.75rem);
+  line-height: 1.05;
+  text-transform: uppercase;
+  letter-spacing: -0.01em;
+  margin: 0 0 0.5rem;
+}
+.legal-prose h2 {
+  font-weight: 800;
+  font-size: 1.35rem;
+  margin: 2.5rem 0 0.75rem;
+  padding-top: 1.25rem;
+  border-top: 2px solid var(--border);
+}
+.legal-prose h3 {
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin: 1.5rem 0 0.5rem;
+}
+.legal-prose p { margin: 0 0 1rem; }
+.legal-prose ul, .legal-prose ol { margin: 0 0 1rem; padding-left: 1.4rem; }
+.legal-prose li { margin: 0.35rem 0; }
+.legal-prose ul { list-style: disc; }
+.legal-prose ol { list-style: decimal; }
+.legal-prose a { color: var(--kick-green); text-decoration: underline; text-underline-offset: 2px; }
+.legal-prose a:hover { color: var(--kick-green-hover); }
+.legal-prose strong { font-weight: 700; color: var(--foreground); }
+.legal-prose hr { border: 0; border-top: 2px solid var(--border); margin: 2rem 0; }
+.legal-prose code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.82em;
+  background: var(--muted);
+  padding: 0.1rem 0.35rem;
+  border-radius: 4px;
+}
+.legal-prose table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0 1.5rem;
+  font-size: 0.85rem;
+  display: block;
+  overflow-x: auto;
+}
+.legal-prose th, .legal-prose td {
+  border: 1px solid var(--border);
+  padding: 0.55rem 0.7rem;
+  text-align: left;
+  vertical-align: top;
+}
+.legal-prose th {
+  background: var(--muted);
+  font-weight: 700;
+  text-transform: uppercase;
+  font-size: 0.72rem;
+  letter-spacing: 0.03em;
+}
+.legal-prose blockquote {
+  border-left: 3px solid var(--kick-green);
+  padding-left: 1rem;
+  margin: 1rem 0;
+  color: var(--muted-foreground);
 }

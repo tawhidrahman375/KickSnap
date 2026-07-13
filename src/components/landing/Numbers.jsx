@@ -2,7 +2,7 @@ import Reveal from './Reveal'
 import CountUp from './CountUp'
 
 const STATS = [
-  { render: <CountUp to={2163} />, label: 'In one Discord server alone', kick: true },
+  { render: <CountUp to={72} />, label: 'Kick streamers, overlays built in', kick: true },
   { render: <CountUp to={800} prefix="$" />, label: 'Per 1M views in the program', kick: true },
   {
     render: <CountUp to={47} suffix="s" />,

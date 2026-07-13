@@ -12,7 +12,29 @@
       "Bash(git config *)",
       "PowerShell(git config --global --list --show-origin)",
       "PowerShell($env:HOME)",
-      "PowerShell($env:USERPROFILE)"
+      "PowerShell($env:USERPROFILE)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); npm uninstall mp4box mp4-muxer; npm install mediabunny)",
+      "PowerShell(Set-Location \"C:\\\\Users\\\\tawhi\\\\OneDrive\\\\Desktop\\\\KickSnap\"; $env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Write-Output \"PWD: $\\(Get-Location\\)\"; npm run build 2>&1)",
+      "WebFetch(domain:www.svgrepo.com)",
+      "WebSearch",
+      "WebFetch(domain:hexmos.com)",
+      "mcp__visualize__read_me",
+      "mcp__visualize__show_widget",
+      "Bash(xargs -n1 basename)",
+      "Bash(grep -v '^_blank$')",
+      "Bash(identify public/favicon.png)",
+      "Bash(awk '{print $1, $3}')",
+      "Bash(uniq -c -w10)",
+      "Bash(find . -path ./node_modules -prune -o -iname \"*tiktok*\" -print)",
+      "Bash(find . -path ./node_modules -prune -o -type d -iname \"*font*\" -print)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); Add-Type -AssemblyName System.IO.Compression.FileSystem; [System.IO.Compression.ZipFile]::OpenRead\\(\"C:\\\\Users\\\\tawhi\\\\OneDrive\\\\Desktop\\\\KickSnap\\\\TikTok_Sans.zip\"\\).Entries | Select-Object FullName, Length | Format-Table -AutoSize)",
+      "Bash(mkdir -p public/_fonttest)",
+      "Bash(cp \"Screenshot 2026-07-13 053237.png\" public/_fonttest/s2.png)",
+      "Bash(cp \"Screenshot 2026-07-13 053222.png\" public/_fonttest/s1.png)",
+      "Bash(node -e \"const {execSync}=require\\('child_process'\\); const fs=require\\('fs'\\); const b=fs.readFileSync\\('public/_fonttest/s2.png'\\); const w=b.readUInt32BE\\(16\\), h=b.readUInt32BE\\(20\\); console.log\\('s2', w+'x'+h\\); const b1=fs.readFileSync\\('public/_fonttest/s1.png'\\); console.log\\('s1', b1.readUInt32BE\\(16\\)+'x'+b1.readUInt32BE\\(20\\)\\);\")",
+      "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"const fs=require\\('fs'\\); const b=fs.readFileSync\\('public/_fonttest/s2.png'\\); console.log\\('s2', b.readUInt32BE\\(16\\)+'x'+b.readUInt32BE\\(20\\)\\); const b1=fs.readFileSync\\('public/_fonttest/s1.png'\\); console.log\\('s1', b1.readUInt32BE\\(16\\)+'x'+b1.readUInt32BE\\(20\\)\\);\")",
+      "Bash(npm run *)",
+      "Bash(npx eslint *)"
     ]
   }
 }

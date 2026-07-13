@@ -1,12 +1,13 @@
+import { Link } from 'react-router-dom'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
 
-const DISCORD_URL = 'https://discord.gg/DT7HvKQ9Gw'
+const DISCORD_URL = 'https://discord.gg/DT7HvKQ9G'
 
 const LINKS = [
-  { label: 'Privacy Policy', href: '#' },
-  { label: 'Terms of Service', href: '#' },
-  { label: 'Contact', href: '#' },
+  { label: 'Privacy Policy', to: '/privacy' },
+  { label: 'Terms of Service', to: '/terms' },
+  { label: 'Cookie Policy', to: '/cookies' },
 ]
 
 export default function Footer() {
@@ -22,13 +23,13 @@ export default function Footer() {
 
         <div className="flex flex-wrap items-center justify-center gap-x-6 gap-y-2">
           {LINKS.map((link) => (
-            <a
+            <Link
               key={link.label}
-              href={link.href}
+              to={link.to}
               className="font-mono text-xs font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
             >
               {link.label}
-            </a>
+            </Link>
           ))}
         </div>
       </div>

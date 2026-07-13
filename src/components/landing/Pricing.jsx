@@ -36,7 +36,6 @@ const TIERS = [
       'Credit rollover',
       'Full analytics history',
       'Streamer & format breakdowns',
-      'No export watermark',
     ],
   },
   {

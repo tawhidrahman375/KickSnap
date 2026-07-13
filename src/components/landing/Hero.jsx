@@ -1,8 +1,6 @@
 import { motion } from 'motion/react'
+import { useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
-import DiscordIcon from '@/components/icons/DiscordIcon'
-
-const DISCORD_URL = 'https://discord.gg/DT7HvKQ9Gw'
 
 const container = {
   hidden: {},
@@ -22,6 +20,7 @@ const slamIn = {
 }
 
 export default function Hero() {
+  const navigate = useNavigate()
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
       {/* Green-to-black gradient backdrop, top to bottom */}
@@ -82,6 +81,7 @@ export default function Hero() {
         >
           <Button
             size="lg"
+            onClick={() => navigate('/editor')}
             className="h-14 rounded-none bg-kick px-8 text-base font-bold tracking-wide text-black uppercase hover:bg-kick-hover"
           >
             Get Started Free
