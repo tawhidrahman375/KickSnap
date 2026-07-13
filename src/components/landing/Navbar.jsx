@@ -63,6 +63,7 @@ export default function Navbar() {
           <Button
             variant="ghost"
             size="lg"
+            onClick={() => navigate('/dashboard')}
             className="hidden h-11 rounded-none px-5 text-sm font-bold uppercase tracking-wide sm:inline-flex"
           >
             Sign In

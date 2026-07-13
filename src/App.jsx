@@ -2,6 +2,7 @@ import { lazy, Suspense } from 'react'
 import { Routes, Route } from 'react-router-dom'
 import Landing from '@/pages/Landing'
 import LegalPage from '@/pages/LegalPage'
+import Dashboard from '@/pages/Dashboard'
 
 // Editor pulls in the WebCodecs/mediabunny pipeline — code-split it so the
 // landing page's initial bundle stays lean.
@@ -19,6 +20,7 @@ function App() {
           </Suspense>
         }
       />
+      <Route path="/dashboard" element={<Dashboard />} />
       <Route path="/privacy" element={<LegalPage doc="privacy" />} />
       <Route path="/terms" element={<LegalPage doc="terms" />} />
       <Route path="/cookies" element={<LegalPage doc="cookies" />} />
