@@ -22,3 +22,13 @@ dist-ssr
 *.njsproj
 *.sln
 *.sw?
+
+# Raw source media dumped in repo root (originals; real assets live in public/ & src/)
+/*.png
+/*.jpg
+/*.jpeg
+/*.webp
+/*.avif
+/*.mp4
+/*.zip
+/*.htm
