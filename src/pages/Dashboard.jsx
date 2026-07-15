@@ -8,6 +8,8 @@ import {
   Settings,
   Coins,
   Plus,
+  Check,
+  X,
   Lock,
   Download,
   Gift,
@@ -382,14 +384,54 @@ function Analytics() {
 
 /* ---------------- Billing ---------------- */
 
-const PACKS = [
-  { name: 'Starter', price: '$5', unit: 'one-time', credits: '30 credits', kind: 'pack' },
-  { name: 'Pro Pack', price: '$10', unit: 'one-time', credits: '100 credits', kind: 'pack' },
-  { name: 'Pro', price: '$15', unit: '/mo', credits: '150 credits + rollover', kind: 'sub' },
-  { name: 'Agency', price: '$150', unit: '/mo', credits: 'Unlimited + all features', kind: 'sub' },
+const PLANS = [
+  {
+    name: 'Pro',
+    monthly: 15,
+    yearly: 12.5,
+    tagline: 'Most Popular',
+    credits: '150 credits / month + rollover',
+    highlight: true,
+  },
+  {
+    name: 'Agency',
+    monthly: 150,
+    yearly: 125,
+    tagline: 'For serious clippers',
+    credits: 'Unlimited credits + every feature',
+    highlight: false,
+  },
 ]
 
+const CREDIT_PACKS = [
+  { name: 'Starter', price: 5, credits: '30 credits' },
+  { name: 'Pro Pack', price: 10, credits: '100 credits' },
+]
+
+const COMPARISON = [
+  { label: 'Credits / month', pro: '150', agency: 'Unlimited' },
+  { label: 'Credit rollover', pro: true, agency: true },
+  { label: 'Saved templates', pro: true, agency: true },
+  { label: 'Auto-post to TikTok / Shorts / Reels', pro: false, agency: true },
+  { label: 'Batch processing', pro: false, agency: true },
+  { label: 'Team accounts', pro: false, agency: true },
+  { label: 'Submission tracker', pro: false, agency: true },
+  { label: 'Payout calculator', pro: false, agency: true },
+  { label: 'Analytics', pro: 'Basic', agency: 'Full' },
+  { label: 'Export reports PDF', pro: false, agency: true },
+]
+
+function CompareCell({ value }) {
+  if (value === true)
+    return <Check className="mx-auto size-5 text-kick" strokeWidth={3} />
+  if (value === false)
+    return <X className="mx-auto size-5 text-muted-foreground/40" strokeWidth={2.5} />
+  return <span className="text-sm font-bold text-foreground">{value}</span>
+}
+
 function Billing({ credits }) {
+  const [yearly, setYearly] = useState(false)
+
   return (
     <div className="space-y-8">
       <div>
@@ -417,30 +459,156 @@ function Billing({ credits }) {
         </div>
       </div>
 
-      {/* Packs */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        {PACKS.map((p) => (
-          <div key={p.name} className="flex flex-col border-2 border-border bg-card p-5">
-            <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-              {p.kind === 'sub' ? 'Subscription' : 'Credit pack'}
-            </div>
-            <div className="mt-1 font-display text-xl uppercase tracking-tight">{p.name}</div>
-            <div className="mt-3 flex items-baseline gap-1">
-              <span className="font-display text-3xl leading-none">{p.price}</span>
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                {p.unit}
-              </span>
-            </div>
-            <div className="mt-2 flex-1 text-sm text-muted-foreground">{p.credits}</div>
-            <Button
-              disabled
-              className="mt-4 h-10 w-full cursor-not-allowed rounded-none bg-foreground/10 font-bold uppercase tracking-wide text-muted-foreground"
+      {/* Billing-period toggle */}
+      <div className="flex">
+        <div className="inline-flex items-center gap-1 border-2 border-border bg-card p-1">
+          <button
+            onClick={() => setYearly(false)}
+            className={cn(
+              'px-5 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
+              !yearly ? 'bg-kick text-black' : 'text-muted-foreground',
+            )}
+          >
+            Monthly
+          </button>
+          <button
+            onClick={() => setYearly(true)}
+            className={cn(
+              'flex items-center gap-2 px-5 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
+              yearly ? 'bg-kick text-black' : 'text-muted-foreground',
+            )}
+          >
+            Yearly
+            <span
+              className={cn(
+                'px-2 py-0.5 text-[10px] font-bold',
+                yearly ? 'bg-black/20 text-black' : 'bg-kick/15 text-kick',
+              )}
             >
-              Soon
-            </Button>
-          </div>
-        ))}
+              2 months free
+            </span>
+          </button>
+        </div>
       </div>
+
+      {/* Subscription plans */}
+      <div className="grid gap-4 sm:grid-cols-2">
+        {PLANS.map((plan) => {
+          const price = yearly ? plan.yearly : plan.monthly
+          return (
+            <div
+              key={plan.name}
+              className={cn(
+                'relative flex flex-col border-2 p-6',
+                plan.highlight
+                  ? 'border-kick bg-card shadow-[0_0_50px_-20px_rgba(83,252,24,0.4)]'
+                  : 'border-border bg-card',
+              )}
+            >
+              <div className="flex items-center justify-between">
+                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                  {plan.tagline}
+                </span>
+                {plan.highlight && (
+                  <span className="bg-kick px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
+                    ★
+                  </span>
+                )}
+              </div>
+              <div className="mt-1 font-display text-2xl uppercase tracking-tight">
+                {plan.name}
+              </div>
+              <div className="mt-3 flex items-baseline gap-1">
+                <span className="font-display text-4xl leading-none">${price}</span>
+                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                  /mo
+                </span>
+              </div>
+              <div className="mt-2 flex-1 text-sm text-muted-foreground">{plan.credits}</div>
+              <Button
+                disabled
+                className={cn(
+                  'mt-4 h-10 w-full cursor-not-allowed rounded-none font-bold uppercase tracking-wide',
+                  plan.highlight
+                    ? 'bg-kick/40 text-black/60'
+                    : 'bg-foreground/10 text-muted-foreground',
+                )}
+              >
+                Soon
+              </Button>
+            </div>
+          )
+        })}
+      </div>
+
+      {/* Credit packs */}
+      <div>
+        <div className="mb-4 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+          Top up your credits — one-time, no subscription
+        </div>
+        <div className="grid gap-4 sm:grid-cols-2">
+          {CREDIT_PACKS.map((pack) => (
+            <div
+              key={pack.name}
+              className="flex items-center justify-between border-2 border-border bg-card px-5 py-4"
+            >
+              <div>
+                <div className="font-bold">{pack.name}</div>
+                <div className="text-sm text-muted-foreground">{pack.credits}</div>
+              </div>
+              <div className="flex items-center gap-3">
+                <span className="font-display text-2xl leading-none">${pack.price}</span>
+                <Button
+                  disabled
+                  className="cursor-not-allowed rounded-none bg-foreground/10 font-bold uppercase tracking-wide text-muted-foreground"
+                  size="sm"
+                >
+                  Soon
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Pro vs Agency comparison */}
+      <div className="overflow-x-auto border-2 border-border">
+        <table className="w-full min-w-[520px] border-collapse text-left">
+          <thead>
+            <tr className="border-b-2 border-border bg-card">
+              <th className="px-5 py-4 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
+                Feature
+              </th>
+              <th className="px-5 py-4 text-center font-mono text-xs font-bold uppercase tracking-widest text-foreground">
+                Pro
+              </th>
+              <th className="px-5 py-4 text-center font-mono text-xs font-bold uppercase tracking-widest text-kick">
+                Agency
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {COMPARISON.map((row, i) => (
+              <tr
+                key={row.label}
+                className={cn(
+                  'border-b border-border/60 last:border-0',
+                  i % 2 === 1 && 'bg-card/30',
+                )}
+              >
+                <td className="px-5 py-3.5 text-sm text-muted-foreground">{row.label}</td>
+                <td className="px-5 py-3.5 text-center">
+                  <CompareCell value={row.pro} />
+                </td>
+                <td className="px-5 py-3.5 text-center">
+                  <CompareCell value={row.agency} />
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
       <p className="text-sm text-muted-foreground">
         Payments arrive with Discord sign-in — you'll be able to top up credits and manage
         your plan right here.
