@@ -14,7 +14,11 @@ import {
   Download,
   Gift,
   TrendingUp,
+  TrendingDown,
   ArrowUpRight,
+  Eye,
+  DollarSign,
+  Users,
   Crown,
   LogOut,
   Clapperboard,
@@ -29,7 +33,7 @@ const DISCORD_URL = 'https://discord.gg/DT7HvKQ9Gw'
 
 const NAV = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },
-  { id: 'analytics', label: 'Analytics', icon: ChartColumnBig, soon: true },
+  { id: 'analytics', label: 'Analytics', icon: ChartColumnBig },
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
@@ -324,90 +328,302 @@ function Overview({ credits, exportCount, navigate, setTab }) {
   )
 }
 
-/* ---------------- Analytics (coming soon) ---------------- */
+/* ---------------- Analytics ----------------
+   Sample-data dashboard. The layout is real; the numbers are placeholders
+   until clip tracking ships with accounts (Supabase, Phase 2) — clearly
+   labelled "Sample data" so it's never mistaken for real performance. */
 
-const ANALYTICS_FEATURES = [
-  'Views over time, per clip',
-  'Best streamer & format breakdown',
-  'Estimated earnings in real time',
-  'Which clips are actually landing',
+// 30 days of daily views (thousands), trending up. Sliced per selected period.
+const DAILY_30 = [
+  18, 22, 19, 27, 24, 31, 29, 26, 34, 30, 38, 33, 41, 37, 45,
+  40, 49, 44, 52, 48, 55, 61, 58, 66, 71, 68, 80, 74, 96, 124,
 ]
 
-const CHART_PATH =
-  'M0,110 C40,100 70,95 100,80 C140,60 170,72 210,50 C250,30 290,40 330,22 C360,10 380,14 400,6'
+const TOP_STREAMERS = [
+  { name: 'Adin Ross', views: 412000 },
+  { name: 'Asmongold', views: 288000 },
+  { name: 'Deshae Frost', views: 201000 },
+  { name: 'Akademiks', views: 176000 },
+  { name: 'Cheesur', views: 92000 },
+]
+
+const FORMAT_SPLIT = [
+  { name: '9:16 Vertical', pct: 62 },
+  { name: 'Square', pct: 21 },
+  { name: 'Split', pct: 17 },
+]
+
+const TOP_CLIPS = [
+  { title: 'insane 1v5 clutch', streamer: 'Adin Ross', format: '9:16', views: 412000 },
+  { title: 'he said WHAT?!', streamer: 'Asmongold', format: '9:16', views: 288000 },
+  { title: 'chat goes feral', streamer: 'Deshae Frost', format: 'Square', views: 201000 },
+  { title: 'caught 4k live', streamer: 'Akademiks', format: 'Split', views: 176000 },
+  { title: 'the reaction 😳', streamer: 'Cheesur', format: '9:16', views: 92000 },
+]
+
+// $ per 1M views in the Kick program (matches the landing-page figure).
+const RPM = 800
+
+function fmtViews(n) {
+  if (n >= 1e6) return (n / 1e6).toFixed(2).replace(/\.?0+$/, '') + 'M'
+  if (n >= 1e3) return Math.round(n / 1e3) + 'K'
+  return String(n)
+}
+const earningsFor = (views) => Math.round((views / 1e6) * RPM)
+
+/** Single-series area+line chart. Pure SVG, brand green, no deps. */
+function ViewsChart({ data }) {
+  const W = 720
+  const H = 200
+  const max = Math.max(...data)
+  const min = Math.min(...data)
+  const span = max - min || 1
+  const px = (i) => (i / (data.length - 1)) * W
+  const py = (v) => H - 14 - ((v - min) / span) * (H - 32)
+  const pts = data.map((v, i) => [px(i), py(v)])
+
+  let line = `M${pts[0][0]},${pts[0][1]}`
+  for (let i = 0; i < pts.length - 1; i++) {
+    const [x0, y0] = pts[i]
+    const [x1, y1] = pts[i + 1]
+    const cx = (x0 + x1) / 2
+    line += ` C${cx},${y0} ${cx},${y1} ${x1},${y1}`
+  }
+  const area = `${line} L${W},${H} L0,${H} Z`
+
+  return (
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" preserveAspectRatio="none">
+      <defs>
+        <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor="#53fc18" stopOpacity="0.28" />
+          <stop offset="100%" stopColor="#53fc18" stopOpacity="0" />
+        </linearGradient>
+      </defs>
+      {[0.25, 0.5, 0.75].map((f) => (
+        <line
+          key={f}
+          x1="0"
+          x2={W}
+          y1={H * f}
+          y2={H * f}
+          stroke="#ffffff"
+          strokeOpacity="0.06"
+          strokeWidth="1"
+          vectorEffect="non-scaling-stroke"
+        />
+      ))}
+      <path d={area} fill="url(#viewsFill)" />
+      <path
+        d={line}
+        fill="none"
+        stroke="#53fc18"
+        strokeWidth="2.5"
+        strokeLinecap="round"
+        strokeLinejoin="round"
+        vectorEffect="non-scaling-stroke"
+      />
+    </svg>
+  )
+}
+
+function AnalyticsStat({ icon: Icon, label, value, delta }) {
+  const up = delta >= 0
+  return (
+    <div className="border-2 border-border bg-card p-5">
+      <div className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <Icon className="size-3.5" strokeWidth={2.5} /> {label}
+      </div>
+      <div className="mt-2 font-display text-3xl leading-none">{value}</div>
+      <div
+        className={cn(
+          'mt-2 flex items-center gap-1 text-xs font-semibold',
+          up ? 'text-kick' : 'text-red-400',
+        )}
+      >
+        {up ? (
+          <TrendingUp className="size-3.5" strokeWidth={2.5} />
+        ) : (
+          <TrendingDown className="size-3.5" strokeWidth={2.5} />
+        )}
+        {up ? '+' : ''}
+        {delta}%
+        <span className="font-normal text-muted-foreground">vs prev</span>
+      </div>
+    </div>
+  )
+}
+
+function BarRow({ label, value, pct }) {
+  return (
+    <div>
+      <div className="mb-1 flex items-center justify-between text-sm">
+        <span className="font-medium">{label}</span>
+        <span className="font-mono text-xs text-muted-foreground">{value}</span>
+      </div>
+      <div className="h-2 w-full bg-background/60">
+        <div className="h-full bg-kick" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
 
 function Analytics() {
+  const [days, setDays] = useState(7)
+
+  const series = DAILY_30.slice(-days)
+  const prev = DAILY_30.slice(-days * 2, -days)
+  const sum = (a) => a.reduce((x, y) => x + y, 0)
+  const views = sum(series) * 1000
+  const prevViews = sum(prev) * 1000 || views
+  const clips = Math.round(days * 0.85)
+  const avg = Math.round(views / clips)
+  const earnings = earningsFor(views)
+  const delta = Math.round(((views - prevViews) / prevViews) * 100)
+
+  const tiles = [
+    { icon: Eye, label: 'Total views', value: fmtViews(views), delta },
+    { icon: DollarSign, label: 'Est. earnings', value: `$${earnings.toLocaleString()}`, delta },
+    { icon: Clapperboard, label: 'Clips posted', value: clips, delta: 15 },
+    { icon: TrendingUp, label: 'Avg views / clip', value: fmtViews(avg), delta: Math.max(0, delta - 15) },
+  ]
+
+  const maxStreamer = TOP_STREAMERS[0].views
+
   return (
     <div className="space-y-8">
-      <div>
-        <div className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          <span className="text-kick">//</span> Analytics
+      <div className="flex flex-wrap items-end justify-between gap-4">
+        <div>
+          <div className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
+            <span className="text-kick">//</span> Analytics
+          </div>
+          <SectionTitle>Know what's landing</SectionTitle>
         </div>
-        <SectionTitle>Know what's landing</SectionTitle>
-      </div>
-
-      {/* Locked preview */}
-      <div className="relative overflow-hidden border-2 border-border bg-card">
-        {/* blurred mock chart behind */}
-        <div className="pointer-events-none select-none p-6 blur-[3px] saturate-50">
-          <div className="mb-4 flex items-center justify-between">
-            <div>
-              <div className="font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Total views
-              </div>
-              <div className="font-display text-4xl leading-none">1.24M</div>
-            </div>
-            <div className="flex items-center gap-1 bg-kick/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide text-kick">
-              <TrendingUp className="size-4" strokeWidth={2.5} /> Climbing
-            </div>
+        <div className="flex items-center gap-3">
+          <span className="border-2 border-border bg-card px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+            Sample data
+          </span>
+          <div className="inline-flex items-center gap-1 border-2 border-border bg-card p-1">
+            {[7, 14].map((d) => (
+              <button
+                key={d}
+                onClick={() => setDays(d)}
+                className={cn(
+                  'px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide transition-colors',
+                  days === d ? 'bg-kick text-black' : 'text-muted-foreground',
+                )}
+              >
+                {d}D
+              </button>
+            ))}
           </div>
-          <div className="h-40 w-full border-2 border-border bg-background/50 p-3">
-            <svg viewBox="0 0 400 120" className="h-full w-full" preserveAspectRatio="none">
-              <defs>
-                <linearGradient id="dashChartFill" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="0%" stopColor="#53fc18" stopOpacity="0.25" />
-                  <stop offset="100%" stopColor="#53fc18" stopOpacity="0" />
-                </linearGradient>
-              </defs>
-              <path d={`${CHART_PATH} L400,120 L0,120 Z`} fill="url(#dashChartFill)" />
-              <path
-                d={CHART_PATH}
-                fill="none"
-                stroke="#53fc18"
-                strokeWidth="2.5"
-                strokeLinecap="round"
-              />
-            </svg>
-          </div>
-        </div>
-
-        {/* lock overlay */}
-        <div className="absolute inset-0 flex flex-col items-center justify-center gap-3 bg-background/40 text-center">
-          <div className="flex size-14 items-center justify-center border-2 border-kick/40 bg-background text-kick">
-            <Lock className="size-6" strokeWidth={2.5} />
-          </div>
-          <div className="font-display text-2xl uppercase tracking-tight">Coming soon</div>
-          <p className="max-w-sm px-6 text-sm text-muted-foreground">
-            Performance tracking is on the roadmap. For now, keep clipping — your history
-            will be waiting when this goes live.
-          </p>
         </div>
       </div>
 
-      {/* Feature list */}
-      <div className="grid gap-3 sm:grid-cols-2">
-        {ANALYTICS_FEATURES.map((f) => (
-          <div
-            key={f}
-            className="flex items-center gap-3 border-2 border-border bg-card/40 px-5 py-4"
-          >
-            <div className="flex size-8 shrink-0 items-center justify-center bg-kick/10 text-kick">
-              <ArrowUpRight className="size-4" strokeWidth={2.5} />
-            </div>
-            <span className="font-medium">{f}</span>
-          </div>
+      {/* Stat row */}
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+        {tiles.map((t) => (
+          <AnalyticsStat key={t.label} {...t} />
         ))}
       </div>
+
+      {/* Views over time */}
+      <div className="border-2 border-border bg-card p-6">
+        <div className="mb-4 flex items-center justify-between">
+          <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Views over time
+          </div>
+          <div className="flex items-center gap-1 bg-kick/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide text-kick">
+            <TrendingUp className="size-4" strokeWidth={2.5} /> Climbing
+          </div>
+        </div>
+        <div className="overflow-hidden border-2 border-border bg-background/50 p-3">
+          <ViewsChart data={series} />
+        </div>
+        <div className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+          <span>{days}d ago</span>
+          <span>Today</span>
+        </div>
+      </div>
+
+      {/* Breakdowns */}
+      <div className="grid gap-4 lg:grid-cols-2">
+        <div className="border-2 border-border bg-card p-5">
+          <div className="mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <Users className="size-3.5" strokeWidth={2.5} /> Top streamers by views
+          </div>
+          <div className="space-y-3">
+            {TOP_STREAMERS.map((s) => (
+              <BarRow
+                key={s.name}
+                label={s.name}
+                value={fmtViews(s.views)}
+                pct={(s.views / maxStreamer) * 100}
+              />
+            ))}
+          </div>
+        </div>
+
+        <div className="border-2 border-border bg-card p-5">
+          <div className="mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            <ChartColumnBig className="size-3.5" strokeWidth={2.5} /> Best format
+          </div>
+          <div className="space-y-3">
+            {FORMAT_SPLIT.map((f) => (
+              <BarRow key={f.name} label={f.name} value={`${f.pct}%`} pct={f.pct} />
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Top clips */}
+      <div className="overflow-x-auto border-2 border-border">
+        <table className="w-full min-w-[520px] border-collapse text-left">
+          <thead>
+            <tr className="border-b-2 border-border bg-card">
+              <th className="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Clip
+              </th>
+              <th className="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Streamer
+              </th>
+              <th className="px-5 py-3.5 text-center font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Format
+              </th>
+              <th className="px-5 py-3.5 text-right font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+                Views
+              </th>
+              <th className="px-5 py-3.5 text-right font-mono text-[10px] font-bold uppercase tracking-widest text-kick">
+                Est. $
+              </th>
+            </tr>
+          </thead>
+          <tbody>
+            {TOP_CLIPS.map((c, i) => (
+              <tr
+                key={c.title}
+                className={cn('border-b border-border/60 last:border-0', i % 2 === 1 && 'bg-card/30')}
+              >
+                <td className="px-5 py-3.5 text-sm font-medium">{c.title}</td>
+                <td className="px-5 py-3.5 text-sm text-muted-foreground">{c.streamer}</td>
+                <td className="px-5 py-3.5 text-center">
+                  <span className="border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+                    {c.format}
+                  </span>
+                </td>
+                <td className="px-5 py-3.5 text-right font-mono text-sm">{fmtViews(c.views)}</td>
+                <td className="px-5 py-3.5 text-right font-mono text-sm font-bold text-kick">
+                  ${earningsFor(c.views)}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+
+      <p className="text-sm text-muted-foreground">
+        These are sample numbers to show the layout. Your real views and earnings appear
+        here once clip tracking launches with Discord sign-in.
+      </p>
     </div>
   )
 }
