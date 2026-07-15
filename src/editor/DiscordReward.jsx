@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useEffect, useState } from 'react'
 import { X, Gift, Check, ExternalLink } from 'lucide-react'
 import { useEditor } from './EditorContext'
 import { DISCORD_INVITE, DISCORD_BONUS_CREDITS } from './constants'
@@ -19,10 +19,22 @@ export default function DiscordReward() {
   const { state, dispatch } = useEditor()
   const [opened, setOpened] = useState(false)
 
-  if (!state.showDiscordPrompt) return null
+  const open = state.showDiscordPrompt
+  const dismiss = () => dispatch({ type: 'DISMISS_DISCORD_PROMPT' })
+
+  // Close on Escape (only while open).
+  useEffect(() => {
+    if (!open) return
+    const onKey = (e) => {
+      if (e.key === 'Escape') dismiss()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [open])
+
+  if (!open) return null
 
   const claimed = state.discordClaimed
-  const dismiss = () => dispatch({ type: 'DISMISS_DISCORD_PROMPT' })
 
   const openDiscord = () => {
     window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer')
@@ -36,6 +48,9 @@ export default function DiscordReward() {
       onClick={dismiss}
     >
       <div
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="discord-reward-title"
         onClick={(e) => e.stopPropagation()}
         className="relative w-full max-w-md overflow-hidden border-2 border-[#5865F2] bg-card shadow-2xl duration-200 animate-in zoom-in-95"
       >
@@ -51,7 +66,10 @@ export default function DiscordReward() {
           <div className="flex size-16 items-center justify-center rounded-2xl bg-white/15 text-white shadow-lg ring-1 ring-white/25">
             <DiscordLogo className="size-9" />
           </div>
-          <h2 className="font-display text-3xl uppercase leading-[0.9] tracking-tight text-white">
+          <h2
+            id="discord-reward-title"
+            className="font-display text-3xl uppercase leading-[0.9] tracking-tight text-white"
+          >
             Join the Discord
           </h2>
           <div className="flex items-center gap-2 rounded-full bg-black/25 px-3 py-1 font-mono text-xs font-bold uppercase tracking-widest text-white">
