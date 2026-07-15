@@ -186,7 +186,12 @@ export default function Dashboard() {
             transition={{ duration: 0.2 }}
           >
             {tab === 'overview' && (
-              <Overview credits={credits} exportCount={exportCount} navigate={navigate} />
+              <Overview
+                credits={credits}
+                exportCount={exportCount}
+                navigate={navigate}
+                setTab={setTab}
+              />
             )}
             {tab === 'analytics' && <Analytics />}
             {tab === 'billing' && <Billing credits={credits} />}
@@ -208,19 +213,38 @@ function SectionTitle({ children }) {
   )
 }
 
-function StatCard({ icon: Icon, label, value, sub }) {
+function StatCard({ icon: Icon, label, value, sub, onClick }) {
+  const interactive = typeof onClick === 'function'
+  const Tag = interactive ? 'button' : 'div'
   return (
-    <div className="border-2 border-border bg-card p-5">
+    <Tag
+      onClick={onClick}
+      className={cn(
+        'border-2 border-border bg-card p-5 text-left',
+        interactive &&
+          'group cursor-pointer transition-colors hover:border-kick/50 hover:bg-kick/[0.03]',
+      )}
+    >
       <div className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
         <Icon className="size-3.5" strokeWidth={2.5} /> {label}
       </div>
       <div className="mt-2 font-display text-4xl leading-none">{value}</div>
-      {sub && <div className="mt-2 text-xs text-muted-foreground">{sub}</div>}
-    </div>
+      {sub && (
+        <div
+          className={cn(
+            'mt-2 text-xs text-muted-foreground',
+            interactive && 'flex items-center gap-1 transition-colors group-hover:text-kick',
+          )}
+        >
+          {sub}
+          {interactive && <ArrowUpRight className="size-3.5" strokeWidth={2.5} />}
+        </div>
+      )}
+    </Tag>
   )
 }
 
-function Overview({ credits, exportCount, navigate }) {
+function Overview({ credits, exportCount, navigate, setTab }) {
   return (
     <div className="space-y-10">
       <div>
@@ -236,7 +260,13 @@ function Overview({ credits, exportCount, navigate }) {
 
       <div className="grid gap-4 sm:grid-cols-3">
         <StatCard icon={Coins} label="Credits left" value={credits} sub="Free plan · resets monthly" />
-        <StatCard icon={Crown} label="Plan" value="Free" sub="Upgrade for more credits" />
+        <StatCard
+          icon={Crown}
+          label="Plan"
+          value="Free"
+          sub="Upgrade for more credits"
+          onClick={() => setTab('billing')}
+        />
         <StatCard icon={Clapperboard} label="Clips exported" value={exportCount} sub="All-time" />
       </div>
 

@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useInView } from 'motion/react'
+import { useInView, useReducedMotion } from 'motion/react'
 
 /**
  * Counts up from 0 to `to` when scrolled into view (once).
@@ -14,10 +14,15 @@ export default function CountUp({
 }) {
   const ref = useRef(null)
   const inView = useInView(ref, { once: true, margin: '-60px' })
+  const reduce = useReducedMotion()
   const [val, setVal] = useState(0)
 
   useEffect(() => {
     if (!inView) return
+    if (reduce) {
+      setVal(to) // reduced motion: show the final number immediately
+      return
+    }
     let raf
     const start = performance.now()
     const tick = (now) => {
@@ -28,7 +33,7 @@ export default function CountUp({
     }
     raf = requestAnimationFrame(tick)
     return () => cancelAnimationFrame(raf)
-  }, [inView, to, duration])
+  }, [inView, to, duration, reduce])
 
   const display = val.toLocaleString('en-US', {
     minimumFractionDigits: decimals,
