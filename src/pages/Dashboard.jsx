@@ -41,6 +41,13 @@ const NAV = [
 // Free-plan monthly credit grant — used to show usage against the allowance.
 const PLAN_CREDITS = 10
 
+// Analytics needs TikTok API access to report real per-clip performance, and we
+// don't have it yet. The dashboard below is fully built and runs on sample data,
+// so it stays behind this flag rather than being deleted — showing invented
+// numbers on an account page would read as the user's own results. Flip to true
+// once clips can be tracked for real.
+const ANALYTICS_ENABLED = false
+
 // Genuine-but-local placeholders. These read from localStorage today and move to
 // Supabase (auth + credits) in Phase 2 — the UI won't change, only the source.
 function readCredits() {
@@ -108,6 +115,14 @@ export default function Dashboard() {
                 >
                   <Icon className="size-[18px] shrink-0" strokeWidth={2} />
                   <span className="flex-1">{item.label}</span>
+                  {item.id === 'analytics' && !ANALYTICS_ENABLED && (
+                    <span
+                      title="Coming soon"
+                      className="shrink-0 rounded bg-foreground/10 px-1.5 py-0.5 text-[9px] font-semibold uppercase tracking-wider text-muted-foreground"
+                    >
+                      Soon
+                    </span>
+                  )}
                 </button>
               )
             })}
@@ -190,7 +205,7 @@ export default function Dashboard() {
                 setTab={setTab}
               />
             )}
-            {tab === 'analytics' && <Analytics />}
+            {tab === 'analytics' && (ANALYTICS_ENABLED ? <Analytics /> : <AnalyticsComingSoon />)}
             {tab === 'billing' && <Billing credits={credits} />}
             {tab === 'settings' && <SettingsTab />}
           </motion.div>
@@ -335,7 +350,7 @@ function Overview({ credits, exportCount, navigate, setTab }) {
           icon={TrendingUp}
           label="Performance"
           value="—"
-          sub="View analytics"
+          sub={ANALYTICS_ENABLED ? 'View analytics' : 'Analytics — coming soon'}
           onClick={() => setTab('analytics')}
         />
       </div>
@@ -503,6 +518,57 @@ function BarRow({ label, value, pct }) {
       </div>
       <div className="h-2 w-full overflow-hidden rounded-full bg-foreground/[0.07]">
         <div className="h-full rounded-full bg-kick" style={{ width: `${pct}%` }} />
+      </div>
+    </div>
+  )
+}
+
+/**
+ * Analytics is built but gated (see ANALYTICS_ENABLED). Real numbers need TikTok
+ * API access to attribute views back to a clip; until then there is nothing
+ * truthful to show.
+ *
+ * The finished dashboard sits behind this as a blurred, inert backdrop — it's
+ * deliberately unreadable and aria-hidden so its sample figures can't be
+ * mistaken for the user's own, while still showing that the feature is real.
+ */
+function AnalyticsComingSoon() {
+  return (
+    <div className="space-y-8">
+      <PageHeader kicker="Analytics" title="Know what's landing" />
+
+      <div className="relative overflow-hidden rounded-lg border border-border">
+        {/* `inert` as well as aria-hidden: pointer-events only stops the mouse,
+            so without it the sample dashboard's controls stay reachable by Tab —
+            focusable content inside aria-hidden is an accessibility violation. */}
+        <div
+          aria-hidden
+          inert
+          className="pointer-events-none select-none blur-[6px] saturate-50"
+        >
+          <div className="p-6 opacity-40">
+            <Analytics />
+          </div>
+        </div>
+
+        <div className="absolute inset-0 flex items-center justify-center bg-background/70 p-6 backdrop-blur-[2px]">
+          <div className="max-w-md text-center">
+            <span className="mx-auto flex size-12 items-center justify-center rounded-xl bg-kick/15 text-kick">
+              <Lock className="size-6" strokeWidth={2} />
+            </span>
+            <h3 className="mt-4 text-xl font-semibold text-foreground">
+              Analytics is coming soon
+            </h3>
+            <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
+              Tracking views and earnings per clip needs TikTok API access, which we
+              don&apos;t have yet. Rather than show you numbers we made up, we&apos;re
+              keeping this shut until it can tell you the truth.
+            </p>
+            <p className="mt-4 font-mono text-[10px] uppercase tracking-widest text-muted-foreground/60">
+              Your exports still work — nothing else is affected
+            </p>
+          </div>
+        </div>
       </div>
     </div>
   )
