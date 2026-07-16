@@ -73,7 +73,7 @@ export default function StreamerSelector() {
   }
 
   function pick(s) {
-    dispatch({ type: 'SELECT_STREAMER', slug: s.slug, name: s.name, overlay: s.overlay })
+    dispatch({ type: 'SELECT_STREAMER', slug: s.slug, name: s.name, overlay: s.overlay, rate: s.rate })
   }
 
   const q = query.trim().toLowerCase()

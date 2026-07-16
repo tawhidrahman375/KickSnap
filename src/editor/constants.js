@@ -68,6 +68,7 @@ export const SNAP_GRID = 0.5
 // Shared verbatim by the DOM preview (cqw units) and the export compositor.
 export const OVERLAY = {
   srcW: 1082,
+  srcH: 108, // every real Kick overlay PNG is exactly 1082x108
   barCenterY: 71, // bar vertical center in the source -> maps to posY*H
   barH: 72, // black bar height (source px)
   radius: 15, // bar + tab corner radius

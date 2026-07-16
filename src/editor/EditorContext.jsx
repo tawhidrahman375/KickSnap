@@ -54,6 +54,9 @@ const initialState = {
     streamer: '', // name for the text-overlay fallback (streamers without a PNG)
     image: null, // URL of the real overlay PNG (selected streamer or custom import)
     custom: false, // true when the user imported their own overlay
+    // USD per 100K views. Comes from streamers.js for a listed pick; typed by the
+    // user for a custom import, since an off-list streamer has no known rate.
+    rate: null,
     position: 0.72, // normalized center Y within safe zone
   },
   text: {
@@ -176,6 +179,7 @@ function reducer(state, action) {
           streamer: action.name,
           image: action.overlay || null, // real PNG when we have it, else text fallback
           custom: false,
+          rate: action.rate ?? null,
         },
         recentStreamers: recents,
       }
@@ -186,14 +190,21 @@ function reducer(state, action) {
     case 'IMPORT_OVERLAY':
       return {
         ...state,
-        overlay: { ...state.overlay, image: action.url, custom: true, streamer: '' },
+        overlay: { ...state.overlay, image: action.url, custom: true, streamer: '', rate: null },
+      }
+
+    // Name + rate for a custom import — an off-list streamer we know nothing about.
+    case 'SET_OVERLAY_DETAILS':
+      return {
+        ...state,
+        overlay: { ...state.overlay, streamer: action.name, rate: action.rate },
       }
 
     // Back to the blank default overlay.
     case 'RESET_OVERLAY':
       return {
         ...state,
-        overlay: { ...state.overlay, image: null, custom: false, streamer: '' },
+        overlay: { ...state.overlay, image: null, custom: false, streamer: '', rate: null },
       }
 
     case 'SET_TEXT':
