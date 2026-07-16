@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
+import { useAuth } from '@/lib/auth'
 import { useEditor } from './EditorContext'
 import { PlaybackProvider } from './PlaybackContext'
 import { exportClip, ExportCanceled } from './exportClip'
@@ -21,6 +22,7 @@ import { cn } from '@/lib/utils'
  */
 export default function EditorShell({ embedded = false, onLockedExport }) {
   const { state, dispatch } = useEditor()
+  const { spendCredit } = useAuth()
   const videoRef = useRef(null)
   const exportAbortRef = useRef(null)
   const [currentTime, setCurrentTimeState] = useState(0)
@@ -276,6 +278,14 @@ export default function EditorShell({ embedded = false, onLockedExport }) {
         (p) => dispatch({ type: 'EXPORT_PROGRESS', progress: p }),
         ac.signal,
       )
+      // Charge only now that a file actually exists. If this call fails the user
+      // still keeps their clip — we won't hold a finished export hostage to a
+      // billing hiccup, and the balance self-corrects on the next page load.
+      try {
+        await spendCredit()
+      } catch (err) {
+        console.error('[KickSnap] credit not charged for this export', err)
+      }
       dispatch({ type: 'EXPORT_DONE', result })
     } catch (err) {
       // A cancel is a deliberate user action, not a failure — drop straight back

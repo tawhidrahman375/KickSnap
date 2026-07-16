@@ -39,6 +39,8 @@ export function AuthProvider({ children }) {
   // With no project configured there is nothing to load — start settled so the
   // UI never sits on a spinner that would never resolve.
   const [loading, setLoading] = useState(isSupabaseConfigured)
+  // The `profiles` row: credits, exports_count, plan. Null when signed out.
+  const [account, setAccount] = useState(null)
 
   useEffect(() => {
     if (!supabase) return
@@ -69,6 +71,63 @@ export function AuthProvider({ children }) {
     }
   }, [])
 
+  const userId = session?.user?.id ?? null
+
+  // Load the account row whenever the signed-in user changes. The signup trigger
+  // creates the profile inside the same transaction as the auth user, so by the
+  // time a session exists the row does too.
+  const refreshAccount = useCallback(async () => {
+    if (!supabase || !userId) {
+      setAccount(null)
+      return null
+    }
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('credits, exports_count, plan, discord_bonus_claimed')
+      .eq('id', userId)
+      .maybeSingle()
+
+    if (error || !data) {
+      setAccount(null)
+      return null
+    }
+    const next = {
+      credits: data.credits,
+      exportsCount: data.exports_count,
+      plan: data.plan,
+      discordBonusClaimed: data.discord_bonus_claimed,
+    }
+    setAccount(next)
+    return next
+  }, [userId])
+
+  useEffect(() => {
+    refreshAccount()
+  }, [refreshAccount])
+
+  /**
+   * Spend one credit for an export. The balance comes back from the database
+   * rather than being decremented locally — the server is the only thing that
+   * knows the real number, and trusting a local guess is how counts drift.
+   * Throws on an empty balance so callers can react.
+   */
+  const spendCredit = useCallback(async () => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { data, error } = await supabase.rpc('consume_credit')
+    if (error) throw error
+    setAccount((a) => (a ? { ...a, credits: data, exportsCount: a.exportsCount + 1 } : a))
+    return data
+  }, [])
+
+  /** Claim the one-time Discord +5. The once-only rule is enforced server-side. */
+  const claimDiscordBonus = useCallback(async () => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { data, error } = await supabase.rpc('claim_discord_bonus')
+    if (error) throw error
+    setAccount((a) => (a ? { ...a, credits: data, discordBonusClaimed: true } : a))
+    return data
+  }, [])
+
   const signInWithDiscord = useCallback(async (next = '/dashboard') => {
     if (!supabase) throw new Error('Supabase is not configured')
     const redirectTo = `${window.location.origin}/auth/callback?next=${encodeURIComponent(next)}`
@@ -85,6 +144,7 @@ export function AuthProvider({ children }) {
     if (!supabase) return
     await supabase.auth.signOut()
     setSession(null)
+    setAccount(null)
   }, [])
 
   const value = useMemo(
@@ -92,12 +152,25 @@ export function AuthProvider({ children }) {
       session,
       user: session?.user ?? null,
       profile: toProfile(session?.user),
+      account,
       loading,
       isConfigured: isSupabaseConfigured,
       signInWithDiscord,
       signOut,
+      refreshAccount,
+      spendCredit,
+      claimDiscordBonus,
     }),
-    [session, loading, signInWithDiscord, signOut],
+    [
+      session,
+      account,
+      loading,
+      signInWithDiscord,
+      signOut,
+      refreshAccount,
+      spendCredit,
+      claimDiscordBonus,
+    ],
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

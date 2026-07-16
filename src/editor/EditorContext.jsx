@@ -1,4 +1,5 @@
-import { createContext, useContext, useReducer, useCallback } from 'react'
+import { createContext, useContext, useReducer, useCallback, useEffect } from 'react'
+import { useAuth } from '@/lib/auth'
 import { FORMATS, BLUR_DEFAULTS } from './constants'
 import {
   newSegmentId,
@@ -12,13 +13,14 @@ const clampVal = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 
 const EditorContext = createContext(null)
 
-const CREDITS_START = 10 // free tier: 10/month
-
-// Discord reward is tracked client-side (no backend yet). "seen" hides the
-// new-user prompt for good; "claimed" grants the +5 bonus exactly once.
-const DISCORD_CLAIMED_KEY = 'kicksnap_discord_claimed'
+// Credits and the Discord claim now live in Postgres (see supabase/migrations).
+// The reducer holds only a mirror of the server's numbers, pushed in via
+// SYNC_ACCOUNT — it must never do credit arithmetic of its own, or the display
+// drifts from the balance that actually gets charged.
+//
+// "seen" stays local: it only decides whether to show the new-user prompt, so
+// it's a per-device UI preference rather than account state.
 const DISCORD_SEEN_KEY = 'kicksnap_discord_seen'
-const DISCORD_BONUS = 5
 function readFlag(key) {
   try {
     return localStorage.getItem(key) === '1'
@@ -30,11 +32,9 @@ function writeFlag(key) {
   try {
     localStorage.setItem(key, '1')
   } catch {
-    // storage unavailable (private mode) — bonus just won't persist across reloads
+    // storage unavailable (private mode) — prompt reappears next reload
   }
 }
-
-const discordClaimed = readFlag(DISCORD_CLAIMED_KEY)
 
 const initialState = {
   loading: false, // clip is being probed
@@ -94,9 +94,12 @@ const initialState = {
   activeTool: 'format',
   sidebarCollapsed: false,
 
+  // Mirror of the server's `profiles` row, filled by SYNC_ACCOUNT.
   tier: 'free',
-  credits: CREDITS_START + (discordClaimed ? DISCORD_BONUS : 0),
-  discordClaimed,
+  credits: 0,
+  signedIn: false,
+  accountLoaded: false, // false until we know the real balance — don't judge credits before this
+  discordClaimed: false,
   showDiscordPrompt: !readFlag(DISCORD_SEEN_KEY), // greet new users once
 
   export: { status: 'idle', progress: 0, result: null, error: null }, // idle|running|done|error
@@ -135,11 +138,24 @@ function reducer(state, action) {
     case 'UPLOAD_ERROR':
       return { ...state, loading: false, file: null, error: action.error }
 
+    // The server is the source of truth for credits; this just mirrors it in.
+    case 'SYNC_ACCOUNT':
+      return {
+        ...state,
+        signedIn: action.signedIn,
+        accountLoaded: action.loaded,
+        credits: action.credits ?? 0,
+        tier: action.plan ?? 'free',
+        discordClaimed: action.discordClaimed ?? false,
+      }
+
     case 'RESET':
       // "New clip" — keep the user's account/prefs, drop the clip + edits.
       return {
         ...initialState,
         credits: state.credits,
+        signedIn: state.signedIn,
+        accountLoaded: state.accountLoaded,
         tier: state.tier,
         blur: state.blur,
         audio: state.audio,
@@ -281,16 +297,11 @@ function reducer(state, action) {
       return { ...state, audio: { ...state.audio, ...action.patch } }
 
     // --- Discord reward ---
+    // The +5 is granted by claim_discord_bonus() and arrives via SYNC_ACCOUNT;
+    // this only closes the prompt. Adding credits here too would double-count.
     case 'CLAIM_DISCORD':
-      if (state.discordClaimed) return { ...state, showDiscordPrompt: false }
-      writeFlag(DISCORD_CLAIMED_KEY)
       writeFlag(DISCORD_SEEN_KEY)
-      return {
-        ...state,
-        credits: state.credits + DISCORD_BONUS,
-        discordClaimed: true,
-        showDiscordPrompt: false,
-      }
+      return { ...state, showDiscordPrompt: false }
 
     case 'OPEN_DISCORD_PROMPT':
       return { ...state, showDiscordPrompt: true }
@@ -311,10 +322,14 @@ function reducer(state, action) {
     case 'EXPORT_PROGRESS':
       return { ...state, export: { ...state.export, progress: action.progress } }
 
+    // consume_credit() charges once the encode has actually produced a file, and
+    // the new balance arrives via SYNC_ACCOUNT. Deducting here too would show one
+    // fewer credit than the user really has. Charging after (not before) means a
+    // crashed encode is free — there's no server compute to recover, so the
+    // credit is a paywall, not a cost.
     case 'EXPORT_DONE':
       return {
         ...state,
-        credits: Math.max(0, state.credits - 1),
         export: { status: 'done', progress: 1, result: action.result, error: null },
       }
 
@@ -345,6 +360,7 @@ const NON_UNDOABLE = new Set([
   'UPLOAD_START', 'UPLOAD_ERROR',
   'SELECT_ELEMENT', 'SELECT_SEGMENT', 'SET_TOOL', 'TOGGLE_SIDEBAR', 'SET_AUDIO', 'TOGGLE_SNAP',
   'CLAIM_DISCORD', 'OPEN_DISCORD_PROMPT', 'DISMISS_DISCORD_PROMPT',
+  'SYNC_ACCOUNT', // account state, not a document edit — never undoable
   'EXPORT_START', 'EXPORT_PROGRESS', 'EXPORT_DONE', 'EXPORT_ERROR', 'EXPORT_RESET',
 ])
 const HISTORY_LIMIT = 100
@@ -406,12 +422,35 @@ export function EditorProvider({ children }) {
   const canUndo = root.past.length > 0
   const canRedo = root.future.length > 0
 
-  // Export is unlocked with a loaded clip, credits, and a real overlay selection
-  // — either a streamer's overlay image, a custom import, or a typed name (for
-  // the streamers we don't have a PNG for). The blank default alone stays locked.
+  // Mirror the account into editor state. SYNC_ACCOUNT is in NON_UNDOABLE, so a
+  // balance changing mid-edit never lands on the undo stack — Ctrl+Z should undo
+  // your cut, not your credits.
+  const { session, account } = useAuth()
+  const signedIn = !!session
+  useEffect(() => {
+    dispatch({
+      type: 'SYNC_ACCOUNT',
+      signedIn,
+      loaded: signedIn ? !!account : true,
+      credits: account?.credits ?? 0,
+      plan: account?.plan,
+      discordClaimed: account?.discordBonusClaimed,
+    })
+  }, [signedIn, account])
+
+  // Export is unlocked with a loaded clip, a signed-in account with credits, and
+  // a real overlay selection — either a streamer's overlay image, a custom
+  // import, or a typed name (for streamers we have no PNG for). The blank
+  // default alone stays locked.
+  //
+  // Anyone can edit; export is where the account is required. Credits are only
+  // meaningful once they're server-owned, so a signed-out visitor has no balance
+  // to spend rather than a free ten.
   const canExport =
     !!state.clip &&
     (!!state.overlay.image || state.overlay.streamer.trim().length > 0) &&
+    state.signedIn &&
+    state.accountLoaded &&
     state.credits > 0
 
   const formatSpec = FORMATS[state.format]

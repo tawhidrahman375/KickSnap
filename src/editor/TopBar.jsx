@@ -1,4 +1,4 @@
-import { Link } from 'react-router-dom'
+import { Link, useNavigate } from 'react-router-dom'
 import { ChevronLeft, Coins, Download, Loader2, TriangleAlert } from 'lucide-react'
 import { useEditor } from './EditorContext'
 import { FORMATS, EXPORT, DISCORD_INVITE, DISCORD_BONUS_CREDITS } from './constants'
@@ -8,8 +8,12 @@ import { cn } from '@/lib/utils'
 
 export default function TopBar({ onExport }) {
   const { state, dispatch, canExport, formatSpec } = useEditor()
+  const navigate = useNavigate()
   const running = state.export.status === 'running'
-  const lowCredits = state.credits <= 3
+  // Only warn about a low balance once we actually know it — a signed-out user
+  // has 0 credits by definition, and painting that red would read as "you're
+  // broke" rather than "you're not signed in".
+  const lowCredits = state.signedIn && state.accountLoaded && state.credits <= 3
   const noStreamer = !state.overlay.image && state.overlay.streamer.trim().length === 0
 
   return (
@@ -62,7 +66,9 @@ export default function TopBar({ onExport }) {
           title={lowCredits ? 'Running low on credits' : 'Credits remaining'}
         >
           <Coins className="size-4" strokeWidth={2.5} />
-          <span className="font-mono text-sm font-bold tabular-nums">{state.credits}</span>
+          <span className="font-mono text-sm font-bold tabular-nums">
+            {state.signedIn && state.accountLoaded ? state.credits : '—'}
+          </span>
           <span className="hidden font-mono text-[10px] uppercase tracking-widest opacity-70 sm:inline">
             credits
           </span>
@@ -70,24 +76,35 @@ export default function TopBar({ onExport }) {
 
         {/* export — with a hover warning when it's blocked (no overlay / no credits) */}
         {(() => {
+          // Order matters: name the thing they should fix first. Sign-in sits
+          // below clip/overlay because it's the last gate before exporting, and
+          // there's no point asking someone to sign in for a clip they haven't
+          // even chosen a streamer for.
           const blocked = !state.clip
             ? 'clip'
             : noStreamer
               ? 'overlay'
-              : state.credits <= 0
-                ? 'credits'
-                : null
+              : !state.signedIn
+                ? 'signin'
+                : !state.accountLoaded
+                  ? 'loading'
+                  : state.credits <= 0
+                    ? 'credits'
+                    : null
           const warn =
             blocked === 'overlay'
               ? 'Pick a streamer or import an overlay first'
-              : blocked === 'credits'
-                ? 'You’re out of credits'
-                : blocked === 'clip'
-                  ? 'Drop a clip in to get started'
-                  : null
+              : blocked === 'signin'
+                ? 'Sign in with Discord to export — it’s free'
+                : blocked === 'credits'
+                  ? 'You’re out of credits'
+                  : blocked === 'clip'
+                    ? 'Drop a clip in to get started'
+                    : null
           const handleClick = () => {
             if (canExport && !running) return onExport()
             if (blocked === 'overlay') dispatch({ type: 'SET_TOOL', tool: 'overlay' }) // guide them there
+            if (blocked === 'signin') navigate('/signin?next=/editor')
           }
           return (
             <div className="group relative">

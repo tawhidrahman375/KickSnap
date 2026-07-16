@@ -1,5 +1,7 @@
 import { useEffect, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { X, Gift, Check, ExternalLink } from 'lucide-react'
+import { useAuth } from '@/lib/auth'
 import { useEditor } from './EditorContext'
 import { DISCORD_INVITE, DISCORD_BONUS_CREDITS } from './constants'
 import DiscordLogo from './DiscordLogo'
@@ -13,10 +15,14 @@ const PERKS = [
 /**
  * New-user reward: join the KickSnap Discord, get 5 bonus credits. Two steps so
  * the join actually happens before the credits land — Open Discord, then Claim.
- * Claimed state is persisted (localStorage) so the bonus is granted only once.
+ * The once-only rule is enforced by claim_discord_bonus() in Postgres; it used
+ * to be a localStorage flag, which meant clearing storage re-granted the bonus.
  */
 export default function DiscordReward() {
   const { state, dispatch } = useEditor()
+  const { session, claimDiscordBonus } = useAuth()
+  const navigate = useNavigate()
+  const signedIn = !!session
   const [opened, setOpened] = useState(false)
 
   const open = state.showDiscordPrompt
@@ -41,7 +47,23 @@ export default function DiscordReward() {
     window.open(DISCORD_INVITE, '_blank', 'noopener,noreferrer')
     setOpened(true)
   }
-  const claim = () => dispatch({ type: 'CLAIM_DISCORD' })
+
+  // The credits are granted by claim_discord_bonus() and mirrored back through
+  // the auth context; the dispatch only closes the prompt. A signed-out visitor
+  // has no account to credit, so send them to sign in first.
+  const claim = async () => {
+    if (!signedIn) {
+      navigate('/signin?next=/editor')
+      return
+    }
+    try {
+      await claimDiscordBonus()
+    } catch (err) {
+      // Already claimed (or offline) — nothing to award, so just close.
+      console.error('[KickSnap] discord bonus not granted', err)
+    }
+    dispatch({ type: 'CLAIM_DISCORD' })
+  }
 
   return (
     <div

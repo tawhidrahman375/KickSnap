@@ -49,22 +49,19 @@ const PLAN_CREDITS = 10
 // once clips can be tracked for real.
 const ANALYTICS_ENABLED = false
 
-// Genuine-but-local placeholders. These read from localStorage today and move to
-// Supabase (auth + credits) in Phase 2 — the UI won't change, only the source.
-function readCredits() {
-  const v = Number(localStorage.getItem('kicksnap_credits'))
-  return Number.isFinite(v) && v > 0 ? v : 10
-}
-function readExportCount() {
-  const v = Number(localStorage.getItem('kicksnap_exports'))
-  return Number.isFinite(v) && v >= 0 ? v : 0
-}
+const PLAN_LABELS = { free: 'Free', pro: 'Pro', agency: 'Agency' }
 
 export default function Dashboard() {
   const [tab, setTab] = useState('overview')
   const navigate = useNavigate()
-  const credits = readCredits()
-  const exportCount = readExportCount()
+  const { account } = useAuth()
+
+  // `account` is null while the profile row loads, and in guest mode (no
+  // Supabase configured, where RequireAuth lets everyone through). Fall back to
+  // the free-plan defaults so the layout never renders holes.
+  const credits = account?.credits ?? PLAN_CREDITS
+  const exportCount = account?.exportsCount ?? 0
+  const plan = PLAN_LABELS[account?.plan] ?? 'Free'
 
   return (
     <div className="flex min-h-svh bg-background text-foreground">
@@ -194,12 +191,13 @@ export default function Dashboard() {
               <Overview
                 credits={credits}
                 exportCount={exportCount}
+                plan={plan}
                 navigate={navigate}
                 setTab={setTab}
               />
             )}
             {tab === 'analytics' && (ANALYTICS_ENABLED ? <Analytics /> : <AnalyticsComingSoon />)}
-            {tab === 'billing' && <Billing credits={credits} />}
+            {tab === 'billing' && <Billing credits={credits} plan={plan} />}
             {tab === 'settings' && <SettingsTab />}
           </motion.div>
         </div>
@@ -344,7 +342,7 @@ function StatCard({ icon: Icon, label, value, sub, accent, onClick }) {
   )
 }
 
-function Overview({ credits, exportCount, navigate, setTab }) {
+function Overview({ credits, exportCount, plan, navigate, setTab }) {
   const { profile } = useAuth()
   const usedPct = Math.min(100, Math.round(((PLAN_CREDITS - Math.min(credits, PLAN_CREDITS)) / PLAN_CREDITS) * 100))
   // Discord display names can be long; a full one would wrap the kicker onto a
@@ -407,7 +405,7 @@ function Overview({ credits, exportCount, navigate, setTab }) {
         <StatCard
           icon={Crown}
           label="Current plan"
-          value="Free"
+          value={plan}
           sub="Compare plans"
           onClick={() => setTab('billing')}
         />
@@ -829,7 +827,7 @@ function CompareCell({ value }) {
   return <span className="text-[13px] font-semibold text-foreground">{value}</span>
 }
 
-function Billing({ credits }) {
+function Billing({ credits, plan }) {
   const [yearly, setYearly] = useState(false)
 
   return (
@@ -840,7 +838,7 @@ function Billing({ credits }) {
       <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center">
         <div>
           <CardLabel>Current plan</CardLabel>
-          <div className="mt-1.5 text-2xl font-semibold tracking-tight">Free</div>
+          <div className="mt-1.5 text-2xl font-semibold tracking-tight">{plan}</div>
           <div className="mt-1 text-[13px] text-muted-foreground">
             {credits} credits left · resets monthly
           </div>
