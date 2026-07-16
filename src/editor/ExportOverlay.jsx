@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { Download, Check, TriangleAlert, X } from 'lucide-react'
 import { useEditor } from './EditorContext'
 
@@ -12,10 +12,24 @@ function fmtDur(s) {
   return `${m}:${sec.toString().padStart(2, '0')}`
 }
 
-export default function ExportOverlay() {
+/**
+ * Time left, from the rate achieved so far. Held back until there's enough
+ * progress to extrapolate from (the first frames include font/overlay/emoji
+ * loading, so an early estimate reads wildly high and then collapses — which
+ * feels worse than showing nothing).
+ */
+function fmtEta(seconds) {
+  if (seconds >= 90) return `~${Math.round(seconds / 60)} min left`
+  if (seconds >= 10) return `~${Math.round(seconds / 5) * 5}s left`
+  return 'almost done'
+}
+
+export default function ExportOverlay({ onCancel }) {
   const { state, dispatch } = useEditor()
   const { status, progress, result, error } = state.export
   const [downloadUrl, setDownloadUrl] = useState(null)
+  const [eta, setEta] = useState(null)
+  const startedAt = useRef(0)
 
   useEffect(() => {
     if (result?.blob) {
@@ -25,6 +39,23 @@ export default function ExportOverlay() {
     }
   }, [result])
 
+  // Reset the clock on each new run so a second export doesn't inherit the first
+  // one's start time and report a nonsense ETA.
+  useEffect(() => {
+    if (status === 'running' && startedAt.current === 0) {
+      startedAt.current = performance.now()
+      setEta(null)
+    } else if (status !== 'running') {
+      startedAt.current = 0
+    }
+  }, [status])
+
+  useEffect(() => {
+    if (status !== 'running' || progress < 0.08 || !startedAt.current) return
+    const elapsed = (performance.now() - startedAt.current) / 1000
+    setEta((elapsed / progress) * (1 - progress))
+  }, [status, progress])
+
   if (status === 'idle') return null
 
   const fileName = `kicksnap-${state.overlay.streamer || 'clip'}-${state.format}.mp4`
@@ -33,15 +64,13 @@ export default function ExportOverlay() {
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 p-6 backdrop-blur-sm">
       <div className="relative w-full max-w-sm border-2 border-border bg-card p-6">
-        {status !== 'running' && (
-          <button
-            onClick={close}
-            className="absolute right-3 top-3 text-muted-foreground transition-colors hover:text-foreground"
-            title="Close"
-          >
-            <X className="size-5" strokeWidth={2.5} />
-          </button>
-        )}
+        <button
+          onClick={status === 'running' ? onCancel : close}
+          className="absolute right-3 top-3 text-muted-foreground transition-colors hover:text-foreground"
+          title={status === 'running' ? 'Cancel export' : 'Close'}
+        >
+          <X className="size-5" strokeWidth={2.5} />
+        </button>
 
         {/* --- running --- */}
         {status === 'running' && (
@@ -50,15 +79,24 @@ export default function ExportOverlay() {
               Exporting
             </p>
             <div className="mt-4 h-2 w-full overflow-hidden rounded-full bg-background">
+              {/* Progress arrives in throttled steps; a linear transition slightly
+                  longer than that interval lets the bar glide between them
+                  instead of visibly ticking. */}
               <div
-                className="h-full rounded-full bg-kick transition-[width] duration-150"
-                style={{ width: `${Math.round(progress * 100)}%` }}
+                className="h-full rounded-full bg-kick transition-[width] duration-200 ease-linear"
+                style={{ width: `${Math.max(2, Math.round(progress * 100))}%` }}
               />
             </div>
             <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-wide text-muted-foreground/70">
-              <span>Processing on your device</span>
+              <span>{eta != null ? fmtEta(eta) : 'Processing on your device'}</span>
               <span className="tabular-nums text-foreground">{Math.round(progress * 100)}%</span>
             </div>
+            <button
+              onClick={onCancel}
+              className="mt-5 w-full py-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Cancel
+            </button>
           </div>
         )}
 

@@ -35,13 +35,53 @@ function loadImage(src, crossOrigin) {
   })
 }
 
+/** Thrown when the user cancels an in-flight export. */
+export class ExportCanceled extends Error {
+  constructor() {
+    super('Export canceled')
+    this.name = 'ExportCanceled'
+  }
+}
+
+/**
+ * Progress is reported once per encoded frame, but each report drives a React
+ * dispatch that re-renders the whole editor tree. At 30fps that's ~30 full
+ * re-renders a second competing with the encoder for the main thread. Rate-limit
+ * to ~15/s — still smooth to the eye, a fraction of the work. Always let 1
+ * through so the bar reliably lands on 100%.
+ */
+function throttleProgress(fn, minIntervalMs = 66) {
+  let last = 0
+  return (p) => {
+    const now = performance.now()
+    if (p >= 1 || now - last >= minIntervalMs) {
+      last = now
+      fn(p)
+    }
+  }
+}
+
 /**
  * @param {File} file            original clip
  * @param {object} state         editor state (format, effect, overlay, text, split, segments, tier)
  * @param {(p:number)=>void} onProgress  0..1
+ * @param {AbortSignal} [signal] abort to cancel an in-flight export
  * @returns {Promise<{ blob: Blob, width, height, duration, size }>}
  */
-export async function exportClip(file, state, onProgress = () => {}) {
+export async function exportClip(file, state, onProgress = () => {}, signal) {
+  const report = throttleProgress(onProgress)
+  // Encoding holds real GPU/codec resources, so bail out via output.cancel()
+  // rather than just dropping the promise on the floor.
+  let output = null
+  const abortIfCanceled = async () => {
+    if (!signal?.aborted) return
+    try {
+      if (output && output.state === 'started') await output.cancel()
+    } catch {
+      /* already torn down */
+    }
+    throw new ExportCanceled()
+  }
   const fmt = FORMATS[state.format] || FORMATS.full
   const W = fmt.width
   const H = fmt.height
@@ -55,7 +95,7 @@ export async function exportClip(file, state, onProgress = () => {}) {
   const videoTrack = await input.getPrimaryVideoTrack()
   if (!videoTrack) throw new Error('No video track found in that clip.')
 
-  const output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() })
+  output = new Output({ format: new Mp4OutputFormat(), target: new BufferTarget() })
 
   const videoSource = new CanvasSource(canvas, {
     codec: EXPORT.codec,
@@ -158,15 +198,23 @@ export async function exportClip(file, state, onProgress = () => {}) {
     const e = segments[i].out
     const sink = new VideoSampleSink(videoTrack)
     for await (const sample of sink.samples(s, e)) {
+      // Check before compositing so a cancel doesn't pay for another frame.
+      // The sample must still be closed or its decoder buffer leaks.
+      if (signal?.aborted) {
+        sample.close()
+        await abortIfCanceled()
+      }
       composeFrame(ctx, W, H, sample, drawState)
       const rel = Math.max(0, sample.timestamp - s)
       const dur = sample.duration || 1 / 30
       await videoSource.add(offsets[i] + rel, dur)
       sample.close()
-      onProgress(Math.min(0.98, (done + rel) / span))
+      report(Math.min(0.98, (done + rel) / span))
     }
     done = offsets[i] + Math.max(0, e - s)
   }
+
+  await abortIfCanceled()
 
   // --- Audio: copy encoded packets per segment, shifted onto the output timeline ---
   if (audioTrack && audioSource) {
@@ -186,10 +234,14 @@ export async function exportClip(file, state, onProgress = () => {}) {
           first = false
         }
       }
-    } catch {
+    } catch (err) {
+      // A cancel must propagate — only genuine audio failures degrade to silence.
+      if (err instanceof ExportCanceled) throw err
       // If audio passthrough fails mid-stream, ship a silent clip rather than error out.
     }
   }
+
+  await abortIfCanceled()
 
   await output.finalize()
   onProgress(1)

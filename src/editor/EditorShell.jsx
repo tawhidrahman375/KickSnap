@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { useEditor } from './EditorContext'
 import { PlaybackProvider } from './PlaybackContext'
-import { exportClip } from './exportClip'
+import { exportClip, ExportCanceled } from './exportClip'
 import { locate, segDuration, segmentOffsets, timelineTime, totalDuration } from './segments'
 import TopBar from './TopBar'
 import Sidebar from './Sidebar'
@@ -22,6 +22,7 @@ import { cn } from '@/lib/utils'
 export default function EditorShell({ embedded = false, onLockedExport }) {
   const { state, dispatch } = useEditor()
   const videoRef = useRef(null)
+  const exportAbortRef = useRef(null)
   const [currentTime, setCurrentTimeState] = useState(0)
   const [playing, setPlaying] = useState(false)
 
@@ -265,17 +266,32 @@ export default function EditorShell({ embedded = false, onLockedExport }) {
     const v = videoRef.current
     v?.pause()
     setPlaying(false)
+    const ac = new AbortController()
+    exportAbortRef.current = ac
     dispatch({ type: 'EXPORT_START' })
     try {
-      const result = await exportClip(state.file, state, (p) =>
-        dispatch({ type: 'EXPORT_PROGRESS', progress: p }),
+      const result = await exportClip(
+        state.file,
+        state,
+        (p) => dispatch({ type: 'EXPORT_PROGRESS', progress: p }),
+        ac.signal,
       )
       dispatch({ type: 'EXPORT_DONE', result })
     } catch (err) {
+      // A cancel is a deliberate user action, not a failure — drop straight back
+      // to the editor without an error card, and don't spend a credit.
+      if (err instanceof ExportCanceled) {
+        dispatch({ type: 'EXPORT_RESET' })
+        return
+      }
       console.error('[KickSnap] export failed', err)
       dispatch({ type: 'EXPORT_ERROR', error: err?.message || 'Something went wrong during export.' })
+    } finally {
+      exportAbortRef.current = null
     }
   }
+
+  const cancelExport = useCallback(() => exportAbortRef.current?.abort(), [])
 
   return (
     <PlaybackProvider value={{ currentTime, playing, total, seek, togglePlay }}>
@@ -309,7 +325,7 @@ export default function EditorShell({ embedded = false, onLockedExport }) {
           </div>
         </div>
       </div>
-      {!embedded && <ExportOverlay />}
+      {!embedded && <ExportOverlay onCancel={cancelExport} />}
       {!embedded && <DiscordReward />}
     </PlaybackProvider>
   )
