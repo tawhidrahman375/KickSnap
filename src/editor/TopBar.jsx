@@ -10,10 +10,12 @@ export default function TopBar({ onExport }) {
   const { state, dispatch, canExport, formatSpec } = useEditor()
   const navigate = useNavigate()
   const running = state.export.status === 'running'
+  const unlimited = state.tier === 'agency'
   // Only warn about a low balance once we actually know it — a signed-out user
   // has 0 credits by definition, and painting that red would read as "you're
-  // broke" rather than "you're not signed in".
-  const lowCredits = state.signedIn && state.accountLoaded && state.credits <= 3
+  // broke" rather than "you're not signed in". Agency sits at 0 forever, so it
+  // must never go red either.
+  const lowCredits = state.signedIn && state.accountLoaded && !unlimited && state.credits <= 3
   const noStreamer = !state.overlay.image && state.overlay.streamer.trim().length === 0
 
   return (
@@ -67,7 +69,7 @@ export default function TopBar({ onExport }) {
         >
           <Coins className="size-4" strokeWidth={2.5} />
           <span className="font-mono text-sm font-bold tabular-nums">
-            {state.signedIn && state.accountLoaded ? state.credits : '—'}
+            {!state.signedIn || !state.accountLoaded ? '—' : unlimited ? '∞' : state.credits}
           </span>
           <span className="hidden font-mono text-[10px] uppercase tracking-widest opacity-70 sm:inline">
             credits
@@ -88,7 +90,7 @@ export default function TopBar({ onExport }) {
                 ? 'signin'
                 : !state.accountLoaded
                   ? 'loading'
-                  : state.credits <= 0
+                  : !unlimited && state.credits <= 0
                     ? 'credits'
                     : null
           const warn =

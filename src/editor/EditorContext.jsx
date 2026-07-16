@@ -446,12 +446,17 @@ export function EditorProvider({ children }) {
   // Anyone can edit; export is where the account is required. Credits are only
   // meaningful once they're server-owned, so a signed-out visitor has no balance
   // to spend rather than a free ten.
+  //
+  // Agency is unlimited, and its balance sits at 0 by design — the plan is what
+  // grants access, not a number. Gating it on credits > 0 would lock out the
+  // people paying the most.
+  const unlimited = state.tier === 'agency'
   const canExport =
     !!state.clip &&
     (!!state.overlay.image || state.overlay.streamer.trim().length > 0) &&
     state.signedIn &&
     state.accountLoaded &&
-    state.credits > 0
+    (unlimited || state.credits > 0)
 
   const formatSpec = FORMATS[state.format]
   const selectedSegment =

@@ -30,6 +30,7 @@ import DiscordIcon from '@/components/icons/DiscordIcon'
 import { Button } from '@/components/ui/button'
 import { DISCORD_URL } from '@/lib/site'
 import { useAuth } from '@/lib/auth'
+import { CREDIT_PACKS, PLANS } from '@/lib/pricing'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -782,29 +783,12 @@ function Analytics() {
 
 /* ---------------- Billing ---------------- */
 
-const PLANS = [
-  {
-    name: 'Pro',
-    monthly: 15,
-    yearly: 12.5,
-    tagline: 'Most popular',
-    credits: '150 credits / month + rollover',
-    highlight: true,
-  },
-  {
-    name: 'Agency',
-    monthly: 150,
-    yearly: 125,
-    tagline: 'For serious clippers',
-    credits: 'Unlimited credits + every feature',
-    highlight: false,
-  },
-]
-
-const CREDIT_PACKS = [
-  { name: 'Starter', price: 5, credits: '30 credits' },
-  { name: 'Pro Pack', price: 10, credits: '100 credits' },
-]
+// Display copy for the two subscription tiers. Prices and Stripe price IDs come
+// from lib/pricing so the buttons can't drift from what Stripe actually charges.
+const PLAN_COPY = {
+  pro: { tagline: 'Most popular', credits: '150 credits / month + rollover', highlight: true },
+  agency: { tagline: 'For serious clippers', credits: 'Unlimited credits + every feature', highlight: false },
+}
 
 const COMPARISON = [
   { label: 'Credits / month', pro: '150', agency: 'Unlimited' },
@@ -829,6 +813,23 @@ function CompareCell({ value }) {
 
 function Billing({ credits, plan }) {
   const [yearly, setYearly] = useState(false)
+  const { startCheckout } = useAuth()
+  // Which price is mid-redirect, so only the clicked button shows a spinner.
+  const [pending, setPending] = useState(null)
+  const [error, setError] = useState(null)
+
+  async function buy(priceId) {
+    setError(null)
+    setPending(priceId)
+    try {
+      // Leaves the site for Stripe, so `pending` stays set until navigation.
+      window.location.href = await startCheckout(priceId)
+    } catch (err) {
+      console.error('[KickSnap] checkout failed', err)
+      setError('Could not open checkout. Please try again.')
+      setPending(null)
+    }
+  }
 
   return (
     <div className="space-y-8">
@@ -842,9 +843,6 @@ function Billing({ credits, plan }) {
           <div className="mt-1 text-[13px] text-muted-foreground">
             {credits} credits left · resets monthly
           </div>
-        </div>
-        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3.5 py-2 text-[13px] text-muted-foreground">
-          <Lock className="size-3.5" /> Checkout launching soon
         </div>
       </div>
 
@@ -882,36 +880,51 @@ function Billing({ credits, plan }) {
 
       {/* Subscription plans */}
       <div className="grid gap-4 sm:grid-cols-2">
-        {PLANS.map((plan) => {
-          const price = yearly ? plan.yearly : plan.monthly
+        {PLANS.map((p) => {
+          const copy = PLAN_COPY[p.id]
+          const tier = yearly ? p.yearly : p.monthly
+          // Show the yearly deal as its effective monthly rate — $12.50/mo reads
+          // as better value than $150/yr, and it's the same number.
+          const perMonth = yearly ? tier.price / 12 : tier.price
+          const current = plan.toLowerCase() === p.id
           return (
             <div
-              key={plan.name}
+              key={p.id}
               className={cn(
                 'relative flex flex-col rounded-xl border p-6 shadow-sm',
-                plan.highlight ? 'border-kick/60 bg-card ring-1 ring-kick/20' : 'border-border bg-card',
+                copy.highlight ? 'border-kick/60 bg-card ring-1 ring-kick/20' : 'border-border bg-card',
               )}
             >
               <div className="flex items-center justify-between">
-                <span className="text-[13px] font-medium text-muted-foreground">{plan.tagline}</span>
-                {plan.highlight && (
+                <span className="text-[13px] font-medium text-muted-foreground">{copy.tagline}</span>
+                {copy.highlight && (
                   <span className="rounded-full bg-kick px-2.5 py-0.5 text-[11px] font-semibold text-black">
                     Recommended
                   </span>
                 )}
               </div>
-              <div className="mt-2 text-xl font-semibold tracking-tight">{plan.name}</div>
+              <div className="mt-2 text-xl font-semibold tracking-tight">{p.name}</div>
               <div className="mt-4 flex items-baseline gap-1">
-                <span className="text-4xl font-semibold tabular-nums tracking-tight">${price}</span>
+                <span className="text-4xl font-semibold tabular-nums tracking-tight">
+                  ${perMonth % 1 === 0 ? perMonth : perMonth.toFixed(2)}
+                </span>
                 <span className="text-[13px] text-muted-foreground">/mo</span>
               </div>
-              <div className="mt-2 flex-1 text-[13px] text-muted-foreground">{plan.credits}</div>
+              <div className="mt-1 text-xs text-muted-foreground">
+                {yearly ? `$${tier.price} billed yearly` : 'billed monthly'}
+              </div>
+              <div className="mt-2 flex-1 text-[13px] text-muted-foreground">{copy.credits}</div>
               <Button
-                disabled
-                variant={plan.highlight ? 'default' : 'outline'}
-                className="mt-5 h-10 w-full cursor-not-allowed text-sm font-semibold"
+                onClick={() => buy(tier.priceId)}
+                disabled={current || pending !== null}
+                variant={copy.highlight ? 'default' : 'outline'}
+                className="mt-5 h-10 w-full text-sm font-semibold"
               >
-                Soon
+                {current
+                  ? 'Current plan'
+                  : pending === tier.priceId
+                    ? 'Opening checkout…'
+                    : `Upgrade to ${p.name}`}
               </Button>
             </div>
           )
@@ -926,22 +939,33 @@ function Billing({ credits, plan }) {
         <div className="grid gap-4 sm:grid-cols-2">
           {CREDIT_PACKS.map((pack) => (
             <div
-              key={pack.name}
+              key={pack.id}
               className="flex items-center justify-between rounded-lg border border-border bg-card px-5 py-4 shadow-sm"
             >
               <div>
                 <div className="text-[15px] font-semibold">{pack.name}</div>
-                <div className="text-[13px] text-muted-foreground">{pack.credits}</div>
+                <div className="text-[13px] text-muted-foreground">{pack.credits} credits</div>
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-semibold tabular-nums tracking-tight">${pack.price}</span>
-                <Button disabled variant="outline" size="sm" className="cursor-not-allowed font-medium">
-                  Soon
+                <Button
+                  onClick={() => buy(pack.priceId)}
+                  disabled={pending !== null}
+                  variant="outline"
+                  size="sm"
+                  className="font-medium"
+                >
+                  {pending === pack.priceId ? 'Opening…' : 'Buy'}
                 </Button>
               </div>
             </div>
           ))}
         </div>
+        {error && (
+          <p role="alert" className="mt-3 text-[13px] font-medium text-red-400">
+            {error}
+          </p>
+        )}
       </div>
 
       {/* Pro vs Agency comparison */}
@@ -973,8 +997,7 @@ function Billing({ credits, plan }) {
       </div>
 
       <p className="text-[13px] text-muted-foreground">
-        Checkout is coming soon — you'll be able to top up credits and manage your plan
-        right here.
+        Payments are handled by Stripe — your card details never touch KickSnap.
       </p>
     </div>
   )

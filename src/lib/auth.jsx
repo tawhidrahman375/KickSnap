@@ -119,6 +119,21 @@ export function AuthProvider({ children }) {
     return data
   }, [])
 
+  /**
+   * Start a Stripe Checkout for a price and hand back the URL to send the user
+   * to. The edge function checks the price against an allowlist, so a tampered
+   * priceId gets rejected there rather than charged.
+   */
+  const startCheckout = useCallback(async (priceId) => {
+    if (!supabase) throw new Error('Supabase is not configured')
+    const { data, error } = await supabase.functions.invoke('create-checkout', {
+      body: { priceId },
+    })
+    if (error) throw error
+    if (!data?.url) throw new Error('Checkout did not return a URL')
+    return data.url
+  }, [])
+
   /** Claim the one-time Discord +5. The once-only rule is enforced server-side. */
   const claimDiscordBonus = useCallback(async () => {
     if (!supabase) throw new Error('Supabase is not configured')
@@ -160,6 +175,7 @@ export function AuthProvider({ children }) {
       refreshAccount,
       spendCredit,
       claimDiscordBonus,
+      startCheckout,
     }),
     [
       session,
@@ -170,6 +186,7 @@ export function AuthProvider({ children }) {
       refreshAccount,
       spendCredit,
       claimDiscordBonus,
+      startCheckout,
     ],
   )
 
