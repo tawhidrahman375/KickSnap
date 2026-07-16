@@ -34,7 +34,15 @@
       "Bash(node -e \"const {execSync}=require\\('child_process'\\); const fs=require\\('fs'\\); const b=fs.readFileSync\\('public/_fonttest/s2.png'\\); const w=b.readUInt32BE\\(16\\), h=b.readUInt32BE\\(20\\); console.log\\('s2', w+'x'+h\\); const b1=fs.readFileSync\\('public/_fonttest/s1.png'\\); console.log\\('s1', b1.readUInt32BE\\(16\\)+'x'+b1.readUInt32BE\\(20\\)\\);\")",
       "Bash(\"/c/Program Files/nodejs/node.exe\" -e \"const fs=require\\('fs'\\); const b=fs.readFileSync\\('public/_fonttest/s2.png'\\); console.log\\('s2', b.readUInt32BE\\(16\\)+'x'+b.readUInt32BE\\(20\\)\\); const b1=fs.readFileSync\\('public/_fonttest/s1.png'\\); console.log\\('s1', b1.readUInt32BE\\(16\\)+'x'+b1.readUInt32BE\\(20\\)\\);\")",
       "Bash(npm run *)",
-      "Bash(npx eslint *)"
+      "Bash(npx eslint *)",
+      "Bash(git commit -q -m ' *)",
+      "Bash(git status *)",
+      "Bash(npx vite *)",
+      "Bash(node -e \"const l=require\\('lucide-react'\\); const want=['LayoutDashboard','ChartColumnBig','CreditCard','Settings','Coins','Plus','Lock','Download','Gift','TrendingUp','ArrowUpRight','Crown','LogOut','Zap','Sparkles','Clapperboard','Video','Clock','ChevronRight']; console.log\\('lucide-react', require\\('lucide-react/package.json'\\).version\\); console.log\\('missing:', want.filter\\(n=>!l[n]\\).join\\(', '\\)||'none'\\)\")",
+      "Bash(git add *)",
+      "Bash(npx oxlint *)",
+      "Bash(git commit -m ' *)",
+      "Bash(cd \"C:/Users/tawhi/OneDrive/Desktop/KickSnap\" && echo \"=== repo root \\(top-level files\\) ===\" && ls -la --time-style=+%Y-%m-%d_%H:%M | grep -v '^d' && echo \"\" && echo \"=== public/ top-level ===\" && ls -la public --time-style=+%Y-%m-%d_%H:%M 2>/dev/null | grep -v '^d' && echo \"\" && echo \"=== any other video ext \\(mkv/avi/m4v/mts\\) ===\" && find . -type f \\\\\\( -iname \"*.mkv\" -o -iname \"*.avi\" -o -iname \"*.m4v\" -o -iname \"*.mts\" -o -iname \"*.mp4\" -o -iname \"*.webm\" -o -iname \"*.mov\" \\\\\\) -not -path \"./node_modules/*\" -not -path \"./.git/*\" 2>/dev/null)"
     ]
   }
 }

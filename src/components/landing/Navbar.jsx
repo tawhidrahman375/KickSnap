@@ -29,8 +29,8 @@ export default function Navbar() {
       className={cn(
         'fixed inset-x-0 top-0 z-50 transition-all duration-300',
         scrolled
-          ? 'border-b-2 border-border bg-background/90 backdrop-blur-md'
-          : 'border-b-2 border-transparent bg-transparent',
+          ? 'border-b border-border bg-background/90 backdrop-blur-md'
+          : 'border-b border-transparent bg-transparent',
       )}
     >
       <nav className="mx-auto flex h-20 max-w-6xl items-center justify-between px-6 sm:px-8">
@@ -64,14 +64,14 @@ export default function Navbar() {
             variant="ghost"
             size="lg"
             onClick={() => navigate('/dashboard')}
-            className="hidden h-11 rounded-none px-5 text-sm font-bold uppercase tracking-wide sm:inline-flex"
+            className="hidden h-11 px-5 text-sm font-bold uppercase tracking-wide sm:inline-flex"
           >
             Sign In
           </Button>
           <Button
             size="lg"
             onClick={() => navigate('/editor')}
-            className="h-11 rounded-none bg-kick px-6 text-sm font-bold uppercase tracking-wide text-black hover:bg-kick-hover"
+            className="h-11 bg-kick px-6 text-sm font-bold uppercase tracking-wide text-black hover:bg-kick-hover"
           >
             Get Started
           </Button>

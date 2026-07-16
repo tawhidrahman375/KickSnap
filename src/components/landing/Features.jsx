@@ -44,7 +44,7 @@ const FEATURES = [
 
 export default function Features() {
   return (
-    <section id="features" className="border-t-2 border-border bg-background py-20 sm:py-24">
+    <section id="features" className="border-t border-border bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <Reveal className="max-w-3xl">
           <Eyebrow>The toolkit</Eyebrow>
@@ -55,7 +55,7 @@ export default function Features() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden border-2 border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, i) => {
             const Icon = feature.icon
             return (
@@ -67,7 +67,7 @@ export default function Features() {
                 <span className="absolute right-6 top-6 font-mono text-xs font-bold text-border">
                   0{i + 1}
                 </span>
-                <div className="flex size-12 items-center justify-center bg-kick/10 text-kick transition-transform group-hover:scale-110">
+                <div className="flex size-12 items-center justify-center rounded-lg bg-kick/10 text-kick transition-transform group-hover:scale-110">
                   <Icon className="size-6" strokeWidth={2.5} />
                 </div>
                 <h3 className="mt-6 text-lg font-bold text-foreground">

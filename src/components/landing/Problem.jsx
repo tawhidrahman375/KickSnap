@@ -22,7 +22,7 @@ const PAINS = [
 
 export default function Problem() {
   return (
-    <section className="relative border-t-2 border-border bg-background py-20 sm:py-24">
+    <section className="relative border-t border-border bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <Reveal className="max-w-3xl">
           <Eyebrow>The problem</Eyebrow>
@@ -37,7 +37,7 @@ export default function Problem() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden border-2 border-border bg-border md:grid-cols-3">
+        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3">
           {PAINS.map((pain, i) => {
             const Icon = pain.icon
             return (
@@ -46,7 +46,7 @@ export default function Problem() {
                 delay={i * 0.1}
                 className="group bg-background p-8 transition-colors hover:bg-card"
               >
-                <div className="flex size-12 items-center justify-center border-2 border-destructive/40 bg-destructive/10 text-destructive">
+                <div className="flex size-12 items-center justify-center rounded-lg border border-destructive/40 bg-destructive/10 text-destructive">
                   <Icon className="size-6" strokeWidth={2.5} />
                 </div>
                 <h3 className="mt-6 text-xl font-bold text-foreground">

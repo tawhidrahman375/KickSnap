@@ -23,6 +23,7 @@ import {
   LogOut,
   Clapperboard,
   ChevronRight,
+  User,
 } from 'lucide-react'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
@@ -37,6 +38,9 @@ const NAV = [
   { id: 'billing', label: 'Billing', icon: CreditCard },
   { id: 'settings', label: 'Settings', icon: Settings },
 ]
+
+// Free-plan monthly credit grant — used to show usage against the allowance.
+const PLAN_CREDITS = 10
 
 // Genuine-but-local placeholders. These read from localStorage today and move to
 // Supabase (auth + credits) in Phase 2 — the UI won't change, only the source.
@@ -58,40 +62,37 @@ export default function Dashboard() {
   return (
     <div className="flex min-h-svh bg-background text-foreground">
       {/* Sidebar */}
-      <aside className="sticky top-0 hidden h-svh w-60 shrink-0 flex-col border-r-2 border-border bg-card/40 md:flex">
-        <div className="flex h-20 items-center border-b-2 border-border px-6">
+      <aside className="sticky top-0 hidden h-svh w-64 shrink-0 flex-col border-r border-border bg-card/30 md:flex">
+        <div className="flex h-16 items-center border-b border-border px-5">
           <button onClick={() => setTab('overview')} className="flex items-center" title="Dashboard">
-            <Logo className="h-8" />
+            <Logo className="h-7" />
           </button>
         </div>
 
-        <nav className="flex-1 space-y-5 p-4">
-          {/* Editor — the hero action. Deliberately loud (filled kick green +
-              glow) and set apart from the muted nav below so it's the obvious
-              thing to click. */}
+        <nav className="flex-1 p-3">
+          {/* Editor — the hero action. A calm, confident primary button set apart
+              from the muted nav so it's the obvious thing to click. */}
           <button
             onClick={() => navigate('/editor')}
-            className="group flex w-full items-center gap-3 border-2 border-kick bg-kick px-4 py-4 text-left text-black shadow-[0_0_28px_-8px_rgba(83,252,24,0.8)] transition-all hover:bg-kick-hover"
+            className="group mb-6 flex w-full items-center gap-3 rounded-lg bg-kick px-3.5 py-3 text-left text-black transition-colors hover:bg-kick-hover"
           >
-            <div className="flex size-10 shrink-0 items-center justify-center bg-black/15">
-              <Clapperboard className="size-5" strokeWidth={2.5} />
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-md bg-black/15">
+              <Clapperboard className="size-[18px]" strokeWidth={2.25} />
             </div>
             <div className="min-w-0 flex-1">
-              <div className="font-display text-lg uppercase leading-none tracking-tight">Editor</div>
-              <div className="mt-1 font-mono text-[10px] font-bold uppercase tracking-wider text-black/60">
-                Make a clip
-              </div>
+              <div className="text-sm font-semibold leading-tight">New clip</div>
+              <div className="text-xs font-medium text-black/60">Open the editor</div>
             </div>
             <Plus
               className="size-4 shrink-0 transition-transform group-hover:rotate-90"
-              strokeWidth={3}
+              strokeWidth={2.75}
             />
           </button>
 
-          <div className="space-y-1">
-            <div className="px-4 pb-1 font-mono text-[9px] font-bold uppercase tracking-[0.3em] text-muted-foreground/60">
-              Menu
-            </div>
+          <div className="px-2 pb-2 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground/70">
+            Menu
+          </div>
+          <div className="space-y-0.5">
             {NAV.map((item) => {
               const Icon = item.icon
               const active = tab === item.id
@@ -100,35 +101,28 @@ export default function Dashboard() {
                   key={item.id}
                   onClick={() => setTab(item.id)}
                   className={cn(
-                    'flex w-full items-center gap-3 border-2 px-4 py-3 text-left font-mono text-xs font-bold uppercase tracking-widest transition-colors',
+                    'flex w-full items-center gap-3 rounded-md px-3 py-2 text-left text-sm font-medium transition-colors',
                     active
-                      ? 'border-kick/40 bg-kick/10 text-kick'
-                      : 'border-transparent text-muted-foreground hover:bg-foreground/5 hover:text-foreground',
+                      ? 'bg-kick/10 text-kick'
+                      : 'text-muted-foreground hover:bg-foreground/5 hover:text-foreground',
                   )}
                 >
-                  <Icon className="size-4 shrink-0" strokeWidth={2.5} />
+                  <Icon className="size-[18px] shrink-0" strokeWidth={2} />
                   <span className="flex-1">{item.label}</span>
-                  {item.soon && (
-                    <span className="bg-foreground/10 px-1.5 py-0.5 text-[9px] tracking-wider text-muted-foreground">
-                      Soon
-                    </span>
-                  )}
                 </button>
               )
             })}
           </div>
         </nav>
 
-        <div className="border-t-2 border-border p-4">
-          <div className="flex items-center gap-3 px-1">
-            <div className="flex size-9 items-center justify-center bg-foreground/10 font-display text-sm text-muted-foreground">
-              ?
+        <div className="border-t border-border p-3">
+          <div className="flex items-center gap-3 rounded-md px-2 py-2">
+            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-muted-foreground">
+              <User className="size-4" strokeWidth={2} />
             </div>
             <div className="min-w-0">
-              <div className="truncate text-sm font-semibold">Guest</div>
-              <div className="truncate font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                Not signed in
-              </div>
+              <div className="truncate text-sm font-medium">Guest</div>
+              <div className="truncate text-xs text-muted-foreground">Not signed in</div>
             </div>
           </div>
         </div>
@@ -137,50 +131,50 @@ export default function Dashboard() {
       {/* Main */}
       <main className="flex-1">
         {/* Top bar (mobile nav + credits) */}
-        <header className="sticky top-0 z-10 flex h-20 items-center justify-between border-b-2 border-border bg-background/90 px-6 backdrop-blur-md sm:px-10">
+        <header className="sticky top-0 z-10 flex h-16 items-center justify-between border-b border-border bg-background/85 px-6 backdrop-blur-md sm:px-8">
           <div className="flex items-center gap-3 md:hidden">
             <button onClick={() => setTab('overview')}>
               <Logo className="h-7" />
             </button>
           </div>
-          <div className="hidden font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground md:block">
+          <div className="hidden text-sm font-medium text-muted-foreground md:block">
             {NAV.find((n) => n.id === tab)?.label}
           </div>
-          <div className="flex items-center gap-4">
-            <div className="flex items-center gap-2 border-2 border-border bg-card px-4 py-2">
-              <Coins className="size-4 text-kick" strokeWidth={2.5} />
-              <span className="font-display text-lg leading-none">{credits}</span>
-              <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                credits
-              </span>
+          <div className="flex items-center gap-3">
+            <div
+              className="flex items-center gap-2 rounded-lg border border-border bg-card px-3 py-1.5"
+              title="Credits remaining"
+            >
+              <Coins className="size-4 text-kick" strokeWidth={2.25} />
+              <span className="text-sm font-semibold tabular-nums">{credits}</span>
+              <span className="text-xs text-muted-foreground">credits</span>
             </div>
             <Button
               onClick={() => navigate('/editor')}
-              className="hidden h-10 rounded-none bg-kick font-bold uppercase tracking-wide text-black hover:bg-kick-hover sm:inline-flex"
+              className="hidden h-9 px-4 text-sm font-semibold sm:inline-flex"
             >
-              <Plus className="size-4" strokeWidth={3} /> New Clip
+              <Plus className="size-4" strokeWidth={2.5} /> New clip
             </Button>
           </div>
         </header>
 
         {/* Mobile tab rail */}
-        <div className="flex gap-1 overflow-x-auto border-b-2 border-border px-4 py-2 md:hidden">
+        <div className="flex gap-1 overflow-x-auto border-b border-border px-4 py-2 md:hidden">
           {NAV.map((item) => (
             <button
               key={item.id}
               onClick={() => setTab(item.id)}
               className={cn(
-                'shrink-0 px-3 py-2 font-mono text-[11px] font-bold uppercase tracking-wider',
+                'shrink-0 rounded-md px-3 py-1.5 text-sm font-medium transition-colors',
                 tab === item.id ? 'bg-kick/10 text-kick' : 'text-muted-foreground',
               )}
             >
               {item.label}
-              {item.soon && ' ·'}
             </button>
           ))}
         </div>
 
-        <div className="mx-auto max-w-5xl px-6 py-10 sm:px-10">
+        <div className="mx-auto max-w-5xl px-6 py-8 sm:px-8 sm:py-10">
           {/* Keyed remount fades each tab in; no exit-wait so switching is
               instant and never stalls on an unfinished animation. */}
           <motion.div
@@ -207,41 +201,68 @@ export default function Dashboard() {
   )
 }
 
-/* ---------------- Overview ---------------- */
+/* ---------------- Shared ---------------- */
 
-function SectionTitle({ children }) {
+function PageHeader({ kicker, title, children }) {
   return (
-    <h1 className="font-display text-[clamp(2rem,4vw,3rem)] uppercase leading-[0.9] tracking-tight">
+    <div>
+      {kicker && (
+        <div className="mb-1.5 text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">
+          {kicker}
+        </div>
+      )}
+      <h1 className="text-[1.75rem] font-semibold leading-tight tracking-tight">{title}</h1>
       {children}
-    </h1>
+    </div>
   )
 }
 
-function StatCard({ icon: Icon, label, value, sub, onClick }) {
+function CardLabel({ icon: Icon, children }) {
+  return (
+    <div className="flex items-center gap-2 text-[13px] font-medium text-muted-foreground">
+      {Icon && <Icon className="size-4" strokeWidth={2} />}
+      {children}
+    </div>
+  )
+}
+
+/* ---------------- Overview ---------------- */
+
+function StatCard({ icon: Icon, label, value, sub, accent, onClick }) {
   const interactive = typeof onClick === 'function'
   const Tag = interactive ? 'button' : 'div'
   return (
     <Tag
       onClick={onClick}
       className={cn(
-        'border-2 border-border bg-card p-5 text-left',
+        'rounded-lg border border-border bg-card p-5 text-left shadow-sm',
         interactive &&
-          'group cursor-pointer transition-colors hover:border-kick/50 hover:bg-kick/[0.03]',
+          'group cursor-pointer transition-colors hover:border-foreground/20 hover:bg-foreground/[0.02]',
       )}
     >
-      <div className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        <Icon className="size-3.5" strokeWidth={2.5} /> {label}
+      <CardLabel icon={Icon}>{label}</CardLabel>
+      <div
+        className={cn(
+          'mt-3 text-3xl font-semibold tabular-nums tracking-tight',
+          accent && 'text-kick',
+        )}
+      >
+        {value}
       </div>
-      <div className="mt-2 font-display text-4xl leading-none">{value}</div>
       {sub && (
         <div
           className={cn(
-            'mt-2 text-xs text-muted-foreground',
-            interactive && 'flex items-center gap-1 transition-colors group-hover:text-kick',
+            'mt-1.5 flex items-center gap-1 text-[13px] text-muted-foreground',
+            interactive && 'transition-colors group-hover:text-foreground',
           )}
         >
           {sub}
-          {interactive && <ArrowUpRight className="size-3.5" strokeWidth={2.5} />}
+          {interactive && (
+            <ArrowUpRight
+              className="size-3.5 opacity-60 transition-transform group-hover:translate-x-0.5 group-hover:-translate-y-0.5"
+              strokeWidth={2.25}
+            />
+          )}
         </div>
       )}
     </Tag>
@@ -249,76 +270,99 @@ function StatCard({ icon: Icon, label, value, sub, onClick }) {
 }
 
 function Overview({ credits, exportCount, navigate, setTab }) {
+  const usedPct = Math.min(100, Math.round(((PLAN_CREDITS - Math.min(credits, PLAN_CREDITS)) / PLAN_CREDITS) * 100))
   return (
-    <div className="space-y-10">
-      <div>
-        <div className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          <span className="text-kick">//</span> Welcome back
-        </div>
-        <SectionTitle>Your clip HQ</SectionTitle>
-        <p className="mt-3 max-w-xl text-muted-foreground">
-          Turn a raw Kick moment into a ready-to-post clip in under a minute. Everything
-          runs in your browser — your clips never leave your machine.
+    <div className="space-y-8">
+      <PageHeader kicker="Welcome back" title="Your clip HQ">
+        <p className="mt-2 max-w-xl text-[15px] text-muted-foreground">
+          Turn a raw Kick moment into a ready-to-post clip in under a minute. Everything runs
+          in your browser — your clips never leave your machine.
         </p>
+      </PageHeader>
+
+      {/* Focal card: how many clips you can make + the primary next action. */}
+      <div className="overflow-hidden rounded-xl border border-border bg-card shadow-sm">
+        <div className="flex flex-col gap-6 p-6 sm:flex-row sm:items-center sm:justify-between sm:p-7">
+          <div className="min-w-0">
+            <CardLabel icon={Coins}>Credits this month</CardLabel>
+            <div className="mt-2 flex items-baseline gap-2.5">
+              <span className="text-5xl font-semibold tabular-nums tracking-tight text-kick">
+                {credits}
+              </span>
+              <span className="text-[15px] text-muted-foreground">
+                clips you can make
+              </span>
+            </div>
+            <div className="mt-4 max-w-xs">
+              <div className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
+                <div
+                  className="h-full rounded-full bg-kick transition-all"
+                  style={{ width: `${100 - usedPct}%` }}
+                />
+              </div>
+              <div className="mt-2 text-xs text-muted-foreground">
+                Free plan · 1 credit per export · resets monthly
+              </div>
+            </div>
+          </div>
+          <div className="flex shrink-0 flex-col gap-2.5">
+            <Button
+              onClick={() => navigate('/editor')}
+              className="h-11 px-6 text-sm font-semibold"
+            >
+              <Plus className="size-4" strokeWidth={2.5} /> New clip
+            </Button>
+            <button
+              onClick={() => setTab('billing')}
+              className="text-center text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
+            >
+              Need more credits?
+            </button>
+          </div>
+        </div>
       </div>
 
+      {/* Secondary stats — meaningful, calm, no giant vanity numbers. */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <StatCard icon={Coins} label="Credits left" value={credits} sub="Free plan · resets monthly" />
+        <StatCard icon={Clapperboard} label="Clips exported" value={exportCount} sub="All-time" />
         <StatCard
           icon={Crown}
-          label="Plan"
+          label="Current plan"
           value="Free"
-          sub="Upgrade for more credits"
+          sub="Compare plans"
           onClick={() => setTab('billing')}
         />
-        <StatCard icon={Clapperboard} label="Clips exported" value={exportCount} sub="All-time" />
-      </div>
-
-      {/* Primary CTA */}
-      <div className="flex flex-col items-start justify-between gap-6 border-2 border-kick/30 bg-kick/5 p-6 sm:flex-row sm:items-center">
-        <div>
-          <h2 className="font-display text-2xl uppercase leading-none tracking-tight">
-            Make your next clip
-          </h2>
-          <p className="mt-2 text-sm text-muted-foreground">
-            Drop a clip, add the overlay, export. No upload, no watermark.
-          </p>
-        </div>
-        <Button
-          onClick={() => navigate('/editor')}
-          className="h-12 shrink-0 rounded-none bg-kick px-8 font-bold uppercase tracking-wide text-black hover:bg-kick-hover"
-        >
-          <Plus className="size-4" strokeWidth={3} /> Open editor
-        </Button>
+        <StatCard
+          icon={TrendingUp}
+          label="Performance"
+          value="—"
+          sub="View analytics"
+          onClick={() => setTab('analytics')}
+        />
       </div>
 
       {/* Discord + recent exports */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="flex items-center gap-4 border-2 border-border bg-card p-5">
-          <div className="flex size-11 shrink-0 items-center justify-center bg-[#5865F2]/15 text-[#5865F2]">
-            <Gift className="size-5" strokeWidth={2.5} />
+        <div className="flex items-center gap-4 rounded-lg border border-border bg-card p-5 shadow-sm">
+          <div className="flex size-11 shrink-0 items-center justify-center rounded-lg bg-[#5865F2]/12 text-[#5865F2]">
+            <Gift className="size-5" strokeWidth={2} />
           </div>
-          <div className="flex-1">
-            <div className="font-semibold">Get 5 free credits</div>
-            <div className="text-sm text-muted-foreground">Join the KickSnap Discord.</div>
+          <div className="min-w-0 flex-1">
+            <div className="text-[15px] font-semibold">Get 5 free credits</div>
+            <div className="text-[13px] text-muted-foreground">Join the KickSnap Discord.</div>
           </div>
           <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
-            <Button
-              variant="outline"
-              className="h-10 rounded-none border-2 font-bold uppercase tracking-wide"
-            >
+            <Button variant="outline" className="h-9 px-3.5 text-sm font-medium">
               <DiscordIcon className="size-4" /> Join
             </Button>
           </a>
         </div>
 
-        <div className="border-2 border-border bg-card p-5">
-          <div className="mb-3 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <Download className="size-3.5" strokeWidth={2.5} /> Recent exports
-          </div>
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <CardLabel icon={Download}>Recent exports</CardLabel>
           <div className="flex flex-col items-center justify-center gap-2 py-6 text-center">
-            <Clapperboard className="size-7 text-muted-foreground/50" />
-            <p className="text-sm text-muted-foreground">
+            <Clapperboard className="size-7 text-muted-foreground/40" strokeWidth={1.75} />
+            <p className="text-[13px] text-muted-foreground">
               Your exported clips will show up here.
             </p>
           </div>
@@ -358,7 +402,7 @@ const TOP_CLIPS = [
   { title: 'he said WHAT?!', streamer: 'Asmongold', format: '9:16', views: 288000 },
   { title: 'chat goes feral', streamer: 'Deshae Frost', format: 'Square', views: 201000 },
   { title: 'caught 4k live', streamer: 'Akademiks', format: 'Split', views: 176000 },
-  { title: 'the reaction 😳', streamer: 'Cheesur', format: '9:16', views: 92000 },
+  { title: 'the reaction', streamer: 'Cheesur', format: '9:16', views: 92000 },
 ]
 
 // $ per 1M views in the Kick program (matches the landing-page figure).
@@ -395,7 +439,7 @@ function ViewsChart({ data }) {
     <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" preserveAspectRatio="none">
       <defs>
         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#53fc18" stopOpacity="0.28" />
+          <stop offset="0%" stopColor="#53fc18" stopOpacity="0.22" />
           <stop offset="100%" stopColor="#53fc18" stopOpacity="0" />
         </linearGradient>
       </defs>
@@ -429,21 +473,19 @@ function ViewsChart({ data }) {
 function AnalyticsStat({ icon: Icon, label, value, delta }) {
   const up = delta >= 0
   return (
-    <div className="border-2 border-border bg-card p-5">
-      <div className="flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-        <Icon className="size-3.5" strokeWidth={2.5} /> {label}
-      </div>
-      <div className="mt-2 font-display text-3xl leading-none">{value}</div>
+    <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+      <CardLabel icon={Icon}>{label}</CardLabel>
+      <div className="mt-3 text-2xl font-semibold tabular-nums tracking-tight">{value}</div>
       <div
         className={cn(
-          'mt-2 flex items-center gap-1 text-xs font-semibold',
+          'mt-1.5 flex items-center gap-1 text-[13px] font-medium',
           up ? 'text-kick' : 'text-red-400',
         )}
       >
         {up ? (
-          <TrendingUp className="size-3.5" strokeWidth={2.5} />
+          <TrendingUp className="size-3.5" strokeWidth={2.25} />
         ) : (
-          <TrendingDown className="size-3.5" strokeWidth={2.5} />
+          <TrendingDown className="size-3.5" strokeWidth={2.25} />
         )}
         {up ? '+' : ''}
         {delta}%
@@ -456,12 +498,12 @@ function AnalyticsStat({ icon: Icon, label, value, delta }) {
 function BarRow({ label, value, pct }) {
   return (
     <div>
-      <div className="mb-1 flex items-center justify-between text-sm">
+      <div className="mb-1.5 flex items-center justify-between text-[13px]">
         <span className="font-medium">{label}</span>
-        <span className="font-mono text-xs text-muted-foreground">{value}</span>
+        <span className="tabular-nums text-muted-foreground">{value}</span>
       </div>
-      <div className="h-2 w-full bg-background/60">
-        <div className="h-full bg-kick" style={{ width: `${pct}%` }} />
+      <div className="h-2 w-full overflow-hidden rounded-full bg-foreground/[0.07]">
+        <div className="h-full rounded-full bg-kick" style={{ width: `${pct}%` }} />
       </div>
     </div>
   )
@@ -492,24 +534,19 @@ function Analytics() {
   return (
     <div className="space-y-8">
       <div className="flex flex-wrap items-end justify-between gap-4">
-        <div>
-          <div className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-            <span className="text-kick">//</span> Analytics
-          </div>
-          <SectionTitle>Know what's landing</SectionTitle>
-        </div>
+        <PageHeader kicker="Analytics" title="Know what's landing" />
         <div className="flex items-center gap-3">
-          <span className="border-2 border-border bg-card px-2.5 py-1 font-mono text-[10px] font-bold uppercase tracking-wider text-muted-foreground">
+          <span className="rounded-md border border-border bg-card px-2.5 py-1 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             Sample data
           </span>
-          <div className="inline-flex items-center gap-1 border-2 border-border bg-card p-1">
+          <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
             {[7, 14].map((d) => (
               <button
                 key={d}
                 onClick={() => setDays(d)}
                 className={cn(
-                  'px-3 py-1.5 font-mono text-[11px] font-bold uppercase tracking-wide transition-colors',
-                  days === d ? 'bg-kick text-black' : 'text-muted-foreground',
+                  'rounded-md px-3 py-1.5 text-[13px] font-medium transition-colors',
+                  days === d ? 'bg-kick text-black' : 'text-muted-foreground hover:text-foreground',
                 )}
               >
                 {d}D
@@ -527,19 +564,17 @@ function Analytics() {
       </div>
 
       {/* Views over time */}
-      <div className="border-2 border-border bg-card p-6">
+      <div className="rounded-lg border border-border bg-card p-6 shadow-sm">
         <div className="mb-4 flex items-center justify-between">
-          <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Views over time
-          </div>
-          <div className="flex items-center gap-1 bg-kick/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide text-kick">
-            <TrendingUp className="size-4" strokeWidth={2.5} /> Climbing
+          <CardLabel>Views over time</CardLabel>
+          <div className="flex items-center gap-1 rounded-md bg-kick/10 px-2.5 py-1 text-[13px] font-medium text-kick">
+            <TrendingUp className="size-4" strokeWidth={2.25} /> Climbing
           </div>
         </div>
-        <div className="overflow-hidden border-2 border-border bg-background/50 p-3">
+        <div className="overflow-hidden rounded-md border border-border bg-background/50 p-3">
           <ViewsChart data={series} />
         </div>
-        <div className="mt-2 flex justify-between font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
+        <div className="mt-2 flex justify-between text-xs text-muted-foreground">
           <span>{days}d ago</span>
           <span>Today</span>
         </div>
@@ -547,9 +582,9 @@ function Analytics() {
 
       {/* Breakdowns */}
       <div className="grid gap-4 lg:grid-cols-2">
-        <div className="border-2 border-border bg-card p-5">
-          <div className="mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <Users className="size-3.5" strokeWidth={2.5} /> Top streamers by views
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <div className="mb-4">
+            <CardLabel icon={Users}>Top streamers by views</CardLabel>
           </div>
           <div className="space-y-3">
             {TOP_STREAMERS.map((s) => (
@@ -563,9 +598,9 @@ function Analytics() {
           </div>
         </div>
 
-        <div className="border-2 border-border bg-card p-5">
-          <div className="mb-4 flex items-center gap-2 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            <ChartColumnBig className="size-3.5" strokeWidth={2.5} /> Best format
+        <div className="rounded-lg border border-border bg-card p-5 shadow-sm">
+          <div className="mb-4">
+            <CardLabel icon={ChartColumnBig}>Best format</CardLabel>
           </div>
           <div className="space-y-3">
             {FORMAT_SPLIT.map((f) => (
@@ -576,53 +611,42 @@ function Analytics() {
       </div>
 
       {/* Top clips */}
-      <div className="overflow-x-auto border-2 border-border">
-        <table className="w-full min-w-[520px] border-collapse text-left">
-          <thead>
-            <tr className="border-b-2 border-border bg-card">
-              <th className="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Clip
-              </th>
-              <th className="px-5 py-3.5 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Streamer
-              </th>
-              <th className="px-5 py-3.5 text-center font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Format
-              </th>
-              <th className="px-5 py-3.5 text-right font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                Views
-              </th>
-              <th className="px-5 py-3.5 text-right font-mono text-[10px] font-bold uppercase tracking-widest text-kick">
-                Est. $
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {TOP_CLIPS.map((c, i) => (
-              <tr
-                key={c.title}
-                className={cn('border-b border-border/60 last:border-0', i % 2 === 1 && 'bg-card/30')}
-              >
-                <td className="px-5 py-3.5 text-sm font-medium">{c.title}</td>
-                <td className="px-5 py-3.5 text-sm text-muted-foreground">{c.streamer}</td>
-                <td className="px-5 py-3.5 text-center">
-                  <span className="border border-border bg-background px-2 py-0.5 font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                    {c.format}
-                  </span>
-                </td>
-                <td className="px-5 py-3.5 text-right font-mono text-sm">{fmtViews(c.views)}</td>
-                <td className="px-5 py-3.5 text-right font-mono text-sm font-bold text-kick">
-                  ${earningsFor(c.views)}
-                </td>
+      <div className="overflow-hidden rounded-lg border border-border shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-border bg-card">
+                <th className="px-5 py-3 text-[12px] font-medium text-muted-foreground">Clip</th>
+                <th className="px-5 py-3 text-[12px] font-medium text-muted-foreground">Streamer</th>
+                <th className="px-5 py-3 text-center text-[12px] font-medium text-muted-foreground">Format</th>
+                <th className="px-5 py-3 text-right text-[12px] font-medium text-muted-foreground">Views</th>
+                <th className="px-5 py-3 text-right text-[12px] font-medium text-muted-foreground">Est. $</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {TOP_CLIPS.map((c) => (
+                <tr key={c.title} className="border-b border-border/60 bg-card last:border-0">
+                  <td className="px-5 py-3 text-[13px] font-medium">{c.title}</td>
+                  <td className="px-5 py-3 text-[13px] text-muted-foreground">{c.streamer}</td>
+                  <td className="px-5 py-3 text-center">
+                    <span className="rounded-md border border-border bg-background px-2 py-0.5 text-[11px] font-medium text-muted-foreground">
+                      {c.format}
+                    </span>
+                  </td>
+                  <td className="px-5 py-3 text-right text-[13px] tabular-nums">{fmtViews(c.views)}</td>
+                  <td className="px-5 py-3 text-right text-[13px] font-semibold tabular-nums text-kick">
+                    ${earningsFor(c.views)}
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        These are sample numbers to show the layout. Your real views and earnings appear
-        here once clip tracking launches with Discord sign-in.
+      <p className="text-[13px] text-muted-foreground">
+        These are sample numbers to show the layout. Your real views and earnings appear here
+        once clip tracking launches with Discord sign-in.
       </p>
     </div>
   )
@@ -635,7 +659,7 @@ const PLANS = [
     name: 'Pro',
     monthly: 15,
     yearly: 12.5,
-    tagline: 'Most Popular',
+    tagline: 'Most popular',
     credits: '150 credits / month + rollover',
     highlight: true,
   },
@@ -669,10 +693,10 @@ const COMPARISON = [
 
 function CompareCell({ value }) {
   if (value === true)
-    return <Check className="mx-auto size-5 text-kick" strokeWidth={3} />
+    return <Check className="mx-auto size-[18px] text-kick" strokeWidth={2.5} />
   if (value === false)
-    return <X className="mx-auto size-5 text-muted-foreground/40" strokeWidth={2.5} />
-  return <span className="text-sm font-bold text-foreground">{value}</span>
+    return <X className="mx-auto size-[18px] text-muted-foreground/40" strokeWidth={2.25} />
+  return <span className="text-[13px] font-semibold text-foreground">{value}</span>
 }
 
 function Billing({ credits }) {
@@ -680,39 +704,30 @@ function Billing({ credits }) {
 
   return (
     <div className="space-y-8">
-      <div>
-        <div className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          <span className="text-kick">//</span> Billing
-        </div>
-        <SectionTitle>Plan & credits</SectionTitle>
-      </div>
+      <PageHeader kicker="Billing" title="Plan & credits" />
 
       {/* Current plan */}
-      <div className="flex flex-col items-start justify-between gap-4 border-2 border-border bg-card p-6 sm:flex-row sm:items-center">
+      <div className="flex flex-col items-start justify-between gap-4 rounded-lg border border-border bg-card p-6 shadow-sm sm:flex-row sm:items-center">
         <div>
-          <div className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-            Current plan
-          </div>
-          <div className="mt-1 font-display text-3xl uppercase leading-none tracking-tight">
-            Free
-          </div>
-          <div className="mt-2 text-sm text-muted-foreground">
+          <CardLabel>Current plan</CardLabel>
+          <div className="mt-1.5 text-2xl font-semibold tracking-tight">Free</div>
+          <div className="mt-1 text-[13px] text-muted-foreground">
             {credits} credits left · resets monthly
           </div>
         </div>
-        <div className="flex items-center gap-2 border-2 border-border bg-background px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+        <div className="flex items-center gap-2 rounded-md border border-border bg-background px-3.5 py-2 text-[13px] text-muted-foreground">
           <Lock className="size-3.5" /> Checkout launching soon
         </div>
       </div>
 
       {/* Billing-period toggle */}
       <div className="flex">
-        <div className="inline-flex items-center gap-1 border-2 border-border bg-card p-1">
+        <div className="inline-flex items-center gap-1 rounded-lg border border-border bg-card p-1">
           <button
             onClick={() => setYearly(false)}
             className={cn(
-              'px-5 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
-              !yearly ? 'bg-kick text-black' : 'text-muted-foreground',
+              'rounded-md px-5 py-2 text-[13px] font-medium transition-colors',
+              !yearly ? 'bg-kick text-black' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             Monthly
@@ -720,15 +735,15 @@ function Billing({ credits }) {
           <button
             onClick={() => setYearly(true)}
             className={cn(
-              'flex items-center gap-2 px-5 py-2 font-mono text-xs font-bold uppercase tracking-wide transition-colors',
-              yearly ? 'bg-kick text-black' : 'text-muted-foreground',
+              'flex items-center gap-2 rounded-md px-5 py-2 text-[13px] font-medium transition-colors',
+              yearly ? 'bg-kick text-black' : 'text-muted-foreground hover:text-foreground',
             )}
           >
             Yearly
             <span
               className={cn(
-                'px-2 py-0.5 text-[10px] font-bold',
-                yearly ? 'bg-black/20 text-black' : 'bg-kick/15 text-kick',
+                'rounded px-1.5 py-0.5 text-[11px] font-semibold',
+                yearly ? 'bg-black/20 text-black' : 'bg-kick/12 text-kick',
               )}
             >
               2 months free
@@ -745,40 +760,28 @@ function Billing({ credits }) {
             <div
               key={plan.name}
               className={cn(
-                'relative flex flex-col border-2 p-6',
-                plan.highlight
-                  ? 'border-kick bg-card shadow-[0_0_50px_-20px_rgba(83,252,24,0.4)]'
-                  : 'border-border bg-card',
+                'relative flex flex-col rounded-xl border p-6 shadow-sm',
+                plan.highlight ? 'border-kick/60 bg-card ring-1 ring-kick/20' : 'border-border bg-card',
               )}
             >
               <div className="flex items-center justify-between">
-                <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
-                  {plan.tagline}
-                </span>
+                <span className="text-[13px] font-medium text-muted-foreground">{plan.tagline}</span>
                 {plan.highlight && (
-                  <span className="bg-kick px-2 py-0.5 text-[10px] font-bold uppercase tracking-wide text-black">
-                    ★
+                  <span className="rounded-full bg-kick px-2.5 py-0.5 text-[11px] font-semibold text-black">
+                    Recommended
                   </span>
                 )}
               </div>
-              <div className="mt-1 font-display text-2xl uppercase tracking-tight">
-                {plan.name}
+              <div className="mt-2 text-xl font-semibold tracking-tight">{plan.name}</div>
+              <div className="mt-4 flex items-baseline gap-1">
+                <span className="text-4xl font-semibold tabular-nums tracking-tight">${price}</span>
+                <span className="text-[13px] text-muted-foreground">/mo</span>
               </div>
-              <div className="mt-3 flex items-baseline gap-1">
-                <span className="font-display text-4xl leading-none">${price}</span>
-                <span className="font-mono text-[10px] uppercase tracking-wider text-muted-foreground">
-                  /mo
-                </span>
-              </div>
-              <div className="mt-2 flex-1 text-sm text-muted-foreground">{plan.credits}</div>
+              <div className="mt-2 flex-1 text-[13px] text-muted-foreground">{plan.credits}</div>
               <Button
                 disabled
-                className={cn(
-                  'mt-4 h-10 w-full cursor-not-allowed rounded-none font-bold uppercase tracking-wide',
-                  plan.highlight
-                    ? 'bg-kick/40 text-black/60'
-                    : 'bg-foreground/10 text-muted-foreground',
-                )}
+                variant={plan.highlight ? 'default' : 'outline'}
+                className="mt-5 h-10 w-full cursor-not-allowed text-sm font-semibold"
               >
                 Soon
               </Button>
@@ -789,26 +792,22 @@ function Billing({ credits }) {
 
       {/* Credit packs */}
       <div>
-        <div className="mb-4 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+        <div className="mb-3 text-[13px] font-medium text-muted-foreground">
           Top up your credits — one-time, no subscription
         </div>
         <div className="grid gap-4 sm:grid-cols-2">
           {CREDIT_PACKS.map((pack) => (
             <div
               key={pack.name}
-              className="flex items-center justify-between border-2 border-border bg-card px-5 py-4"
+              className="flex items-center justify-between rounded-lg border border-border bg-card px-5 py-4 shadow-sm"
             >
               <div>
-                <div className="font-bold">{pack.name}</div>
-                <div className="text-sm text-muted-foreground">{pack.credits}</div>
+                <div className="text-[15px] font-semibold">{pack.name}</div>
+                <div className="text-[13px] text-muted-foreground">{pack.credits}</div>
               </div>
               <div className="flex items-center gap-3">
-                <span className="font-display text-2xl leading-none">${pack.price}</span>
-                <Button
-                  disabled
-                  className="cursor-not-allowed rounded-none bg-foreground/10 font-bold uppercase tracking-wide text-muted-foreground"
-                  size="sm"
-                >
+                <span className="text-2xl font-semibold tabular-nums tracking-tight">${pack.price}</span>
+                <Button disabled variant="outline" size="sm" className="cursor-not-allowed font-medium">
                   Soon
                 </Button>
               </div>
@@ -818,46 +817,36 @@ function Billing({ credits }) {
       </div>
 
       {/* Pro vs Agency comparison */}
-      <div className="overflow-x-auto border-2 border-border">
-        <table className="w-full min-w-[520px] border-collapse text-left">
-          <thead>
-            <tr className="border-b-2 border-border bg-card">
-              <th className="px-5 py-4 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
-                Feature
-              </th>
-              <th className="px-5 py-4 text-center font-mono text-xs font-bold uppercase tracking-widest text-foreground">
-                Pro
-              </th>
-              <th className="px-5 py-4 text-center font-mono text-xs font-bold uppercase tracking-widest text-kick">
-                Agency
-              </th>
-            </tr>
-          </thead>
-          <tbody>
-            {COMPARISON.map((row, i) => (
-              <tr
-                key={row.label}
-                className={cn(
-                  'border-b border-border/60 last:border-0',
-                  i % 2 === 1 && 'bg-card/30',
-                )}
-              >
-                <td className="px-5 py-3.5 text-sm text-muted-foreground">{row.label}</td>
-                <td className="px-5 py-3.5 text-center">
-                  <CompareCell value={row.pro} />
-                </td>
-                <td className="px-5 py-3.5 text-center">
-                  <CompareCell value={row.agency} />
-                </td>
+      <div className="overflow-hidden rounded-lg border border-border shadow-sm">
+        <div className="overflow-x-auto">
+          <table className="w-full min-w-[520px] border-collapse text-left">
+            <thead>
+              <tr className="border-b border-border bg-card">
+                <th className="px-5 py-3.5 text-[12px] font-medium text-muted-foreground">Feature</th>
+                <th className="px-5 py-3.5 text-center text-[12px] font-medium text-foreground">Pro</th>
+                <th className="px-5 py-3.5 text-center text-[12px] font-medium text-kick">Agency</th>
               </tr>
-            ))}
-          </tbody>
-        </table>
+            </thead>
+            <tbody>
+              {COMPARISON.map((row) => (
+                <tr key={row.label} className="border-b border-border/60 bg-card last:border-0">
+                  <td className="px-5 py-3 text-[13px] text-muted-foreground">{row.label}</td>
+                  <td className="px-5 py-3 text-center">
+                    <CompareCell value={row.pro} />
+                  </td>
+                  <td className="px-5 py-3 text-center">
+                    <CompareCell value={row.agency} />
+                  </td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
-      <p className="text-sm text-muted-foreground">
-        Payments arrive with Discord sign-in — you'll be able to top up credits and manage
-        your plan right here.
+      <p className="text-[13px] text-muted-foreground">
+        Payments arrive with Discord sign-in — you'll be able to top up credits and manage your
+        plan right here.
       </p>
     </div>
   )
@@ -867,10 +856,10 @@ function Billing({ credits }) {
 
 function SettingRow({ title, desc, action }) {
   return (
-    <div className="flex items-center justify-between gap-4 border-2 border-border bg-card p-5">
+    <div className="flex items-center justify-between gap-4 rounded-lg border border-border bg-card p-5 shadow-sm">
       <div className="min-w-0">
-        <div className="font-semibold">{title}</div>
-        <div className="text-sm text-muted-foreground">{desc}</div>
+        <div className="text-[15px] font-semibold">{title}</div>
+        <div className="text-[13px] text-muted-foreground">{desc}</div>
       </div>
       {action}
     </div>
@@ -880,19 +869,14 @@ function SettingRow({ title, desc, action }) {
 function SettingsTab() {
   return (
     <div className="space-y-8">
-      <div>
-        <div className="mb-2 font-mono text-xs font-bold uppercase tracking-[0.25em] text-muted-foreground">
-          <span className="text-kick">//</span> Settings
-        </div>
-        <SectionTitle>Account</SectionTitle>
-      </div>
+      <PageHeader kicker="Settings" title="Account" />
 
       <div className="space-y-3">
         <SettingRow
           title="Discord sign-in"
           desc="Connect your Discord to sync credits across devices."
           action={
-            <div className="flex items-center gap-2 border-2 border-border bg-background px-4 py-2 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
+            <div className="flex shrink-0 items-center gap-2 rounded-md border border-border bg-background px-3.5 py-2 text-[13px] text-muted-foreground">
               <Lock className="size-3.5" /> Soon
             </div>
           }
@@ -901,9 +885,7 @@ function SettingsTab() {
           title="Export defaults"
           desc="Set a default format, overlay position and caption style."
           action={
-            <span className="shrink-0 font-mono text-[11px] uppercase tracking-wider text-muted-foreground">
-              Soon
-            </span>
+            <span className="shrink-0 text-[13px] text-muted-foreground">Soon</span>
           }
         />
         <SettingRow
@@ -913,7 +895,7 @@ function SettingsTab() {
             <Button
               variant="outline"
               disabled
-              className="h-10 shrink-0 cursor-not-allowed rounded-none border-2 font-bold uppercase tracking-wide"
+              className="h-10 shrink-0 cursor-not-allowed text-sm font-medium"
             >
               <LogOut className="size-4" /> Sign out
             </Button>
@@ -923,7 +905,7 @@ function SettingsTab() {
 
       <Link
         to="/"
-        className="inline-flex items-center gap-1 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+        className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         Back to site <ChevronRight className="size-3.5" />
       </Link>

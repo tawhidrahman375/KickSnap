@@ -23,7 +23,7 @@ const CHART_PATH =
 
 export default function AnalyticsPreview() {
   return (
-    <section className="border-t-2 border-border py-20 sm:py-24">
+    <section className="border-t border-border py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <Reveal className="max-w-3xl">
           <Eyebrow>Analytics</Eyebrow>
@@ -36,7 +36,7 @@ export default function AnalyticsPreview() {
 
         <div className="mt-14 grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
           {/* Dashboard mockup */}
-          <Reveal className="border-2 border-border bg-card p-6 shadow-2xl shadow-black/40">
+          <Reveal className="rounded-xl border border-border bg-card p-6 shadow-2xl shadow-black/40">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <div className="font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -46,13 +46,13 @@ export default function AnalyticsPreview() {
                   <CountUp to={1240000} />
                 </div>
               </div>
-              <div className="flex items-center gap-1 bg-kick/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide text-kick">
+              <div className="flex items-center gap-1 rounded-md bg-kick/10 px-3 py-1 font-mono text-xs font-bold uppercase tracking-wide text-kick">
                 <TrendingUp className="size-4" strokeWidth={2.5} /> Climbing
               </div>
             </div>
 
             {/* Chart */}
-            <div className="relative h-40 w-full overflow-hidden border-2 border-border bg-background/50 p-3">
+            <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border bg-background/50 p-3">
               <svg viewBox="0 0 400 120" className="h-full w-full" preserveAspectRatio="none">
                 <defs>
                   <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
@@ -85,7 +85,7 @@ export default function AnalyticsPreview() {
             {/* Stat tiles */}
             <div className="mt-4 grid grid-cols-3 gap-3">
               {STATS.map((s) => (
-                <div key={s.label} className="border-2 border-border bg-background/50 p-3">
+                <div key={s.label} className="rounded-lg border border-border bg-background/50 p-3">
                   <div className="truncate font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
                     {s.label}
                   </div>
@@ -106,9 +106,9 @@ export default function AnalyticsPreview() {
               <Reveal
                 key={b}
                 delay={i * 0.1}
-                className="flex items-center gap-3 border-2 border-border bg-card/40 px-5 py-4"
+                className="flex items-center gap-3 rounded-lg border border-border bg-card/40 px-5 py-4"
               >
-                <div className="flex size-8 shrink-0 items-center justify-center bg-kick/10 text-kick">
+                <div className="flex size-8 shrink-0 items-center justify-center rounded-md bg-kick/10 text-kick">
                   <ArrowUpRight className="size-4" strokeWidth={2.5} />
                 </div>
                 <span className="font-medium text-foreground">{b}</span>

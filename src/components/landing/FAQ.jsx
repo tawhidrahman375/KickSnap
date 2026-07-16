@@ -42,7 +42,7 @@ const FAQS = [
 
 function Item({ faq, open, onToggle }) {
   return (
-    <div className="border-b-2 border-border">
+    <div className="border-b border-border">
       <button
         onClick={onToggle}
         className="flex w-full items-center justify-between gap-4 py-5 text-left"
@@ -77,7 +77,7 @@ export default function FAQ() {
   const [openIndex, setOpenIndex] = useState(0)
 
   return (
-    <section id="faq" className="border-t-2 border-border py-20 sm:py-24">
+    <section id="faq" className="border-t border-border py-20 sm:py-24">
       <div className="mx-auto max-w-3xl px-6">
         <Reveal>
           <Eyebrow>FAQ</Eyebrow>
@@ -86,7 +86,7 @@ export default function FAQ() {
           </h2>
         </Reveal>
 
-        <Reveal delay={0.1} className="mt-12 border-t-2 border-border">
+        <Reveal delay={0.1} className="mt-12 border-t border-border">
           {FAQS.map((faq, i) => (
             <Item
               key={faq.q}

@@ -25,7 +25,7 @@ const STEPS = [
 
 export default function HowItWorks() {
   return (
-    <section className="border-t-2 border-border py-20 sm:py-24">
+    <section className="border-t border-border py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <Reveal className="max-w-3xl">
           <Eyebrow>How it works</Eyebrow>
@@ -36,7 +36,7 @@ export default function HowItWorks() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden border-2 border-border bg-border md:grid-cols-3">
+        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3">
           {STEPS.map((step, i) => {
             const Icon = step.icon
             return (
@@ -49,7 +49,7 @@ export default function HowItWorks() {
                   <span className="font-display text-6xl leading-none text-border">
                     {step.step}
                   </span>
-                  <div className="flex size-12 items-center justify-center bg-kick/10 text-kick">
+                  <div className="flex size-12 items-center justify-center rounded-lg bg-kick/10 text-kick">
                     <Icon className="size-6" strokeWidth={2.5} />
                   </div>
                 </div>

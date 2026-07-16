@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 
 export default function FinalCTA() {
   return (
-    <section className="relative overflow-hidden border-t-2 border-kick bg-kick py-24 text-black">
+    <section className="relative overflow-hidden bg-kick py-24 text-black">
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 opacity-[0.06]"
@@ -43,7 +43,7 @@ export default function FinalCTA() {
         >
           <Button
             size="lg"
-            className="h-14 rounded-none bg-black px-10 text-base font-bold uppercase tracking-wide text-white hover:bg-black/85"
+            className="h-14 bg-black px-10 text-base font-bold uppercase tracking-wide text-white hover:bg-black/85"
           >
             Get Started Free
           </Button>

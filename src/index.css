@@ -29,7 +29,9 @@
 /*  Light theme (shadcn semantic tokens)                               */
 /* ------------------------------------------------------------------ */
 :root {
-  --radius: 0.2rem;
+  /* Refined, consistent corners — tight enough to keep the Kick edge,
+     soft enough to read as intentional rather than brutalist. */
+  --radius: 0.375rem;
 
   --background: oklch(1 0 0);
   --foreground: oklch(0.145 0 0);

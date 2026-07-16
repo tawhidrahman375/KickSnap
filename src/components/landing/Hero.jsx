@@ -1,5 +1,6 @@
 import { motion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
+import { Check, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 
 const container = {
@@ -19,23 +20,32 @@ const slamIn = {
   show: { opacity: 1, y: 0, transition: { duration: 0.5, ease: [0.16, 1, 0.3, 1] } },
 }
 
+const TRUST = [
+  'No upload — runs in your browser',
+  'No export watermark',
+  'Works in Chrome & Edge',
+]
+
 export default function Hero() {
   const navigate = useNavigate()
+  const scrollToDemo = () => {
+    document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
+  }
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
-      {/* Green-to-black gradient backdrop, top to bottom */}
+      {/* Subtle green glow behind the headline — a hint of brand, not a wash. */}
       <div
         aria-hidden
         className="pointer-events-none absolute inset-0 -z-10"
         style={{
           background:
-            'linear-gradient(to bottom, rgba(83,252,24,0.55) 0%, rgba(83,252,24,0.22) 22%, rgba(83,252,24,0.06) 40%, rgba(0,0,0,0) 62%)',
+            'radial-gradient(60% 50% at 50% 0%, rgba(83,252,24,0.16) 0%, rgba(83,252,24,0.04) 38%, rgba(0,0,0,0) 66%)',
         }}
       />
       {/* Faint grid texture */}
       <div
         aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.04]"
+        className="pointer-events-none absolute inset-0 -z-10 opacity-[0.03]"
         style={{
           backgroundImage:
             'linear-gradient(to right, #fff 1px, transparent 1px), linear-gradient(to bottom, #fff 1px, transparent 1px)',
@@ -63,8 +73,7 @@ export default function Hero() {
         >
           The clip editor
           <br />
-          built for{' '}
-          <span className="text-kick">Kick clippers.</span>
+          built for <span className="text-kick">Kick clippers.</span>
         </motion.h1>
 
         <motion.p
@@ -75,33 +84,37 @@ export default function Hero() {
           bottleneck is finding the moment.
         </motion.p>
 
-        <motion.div
-          variants={fadeUp}
-          className="mt-10 flex flex-col gap-3 sm:flex-row"
-        >
+        <motion.div variants={fadeUp} className="mt-10 flex flex-col gap-3 sm:flex-row">
           <Button
             size="lg"
             onClick={() => navigate('/editor')}
-            className="h-14 rounded-none bg-kick px-8 text-base font-bold tracking-wide text-black uppercase hover:bg-kick-hover"
+            className="h-14 px-8 text-base font-bold tracking-wide text-black uppercase"
           >
-            Get Started Free
+            Get started free
           </Button>
           <Button
             variant="outline"
             size="lg"
-            className="h-14 rounded-none border-2 px-8 text-base font-bold tracking-wide uppercase"
+            onClick={scrollToDemo}
+            className="h-14 border-2 px-8 text-base font-bold tracking-wide uppercase"
           >
-            Watch Demo
+            <Play className="size-4 fill-current" strokeWidth={0} />
+            See how it works
           </Button>
         </motion.div>
 
-        <motion.div
+        {/* Trust row — real product signals instead of a second headline. */}
+        <motion.ul
           variants={fadeUp}
-          className="mt-10 font-display text-4xl font-bold uppercase tracking-tight text-foreground"
-          style={{ textShadow: '0 4px 12px rgba(0,0,0,0.5)' }}
+          className="mt-10 flex flex-wrap items-center gap-x-6 gap-y-2.5 text-sm font-medium text-muted-foreground"
         >
-          Clip smarter. Earn more.
-        </motion.div>
+          {TRUST.map((t) => (
+            <li key={t} className="flex items-center gap-2">
+              <Check className="size-4 shrink-0 text-kick" strokeWidth={3} />
+              {t}
+            </li>
+          ))}
+        </motion.ul>
       </motion.div>
     </section>
   )
