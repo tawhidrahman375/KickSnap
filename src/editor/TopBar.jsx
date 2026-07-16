@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom'
 import { ChevronLeft, Coins, Download, Loader2, TriangleAlert } from 'lucide-react'
 import { useEditor } from './EditorContext'
-import { FORMATS, DISCORD_INVITE, DISCORD_BONUS_CREDITS } from './constants'
+import { FORMATS, EXPORT, DISCORD_INVITE, DISCORD_BONUS_CREDITS } from './constants'
 import DiscordLogo from './DiscordLogo'
 import Logo from '@/components/Logo'
 import { cn } from '@/lib/utils'
@@ -26,7 +26,8 @@ export default function TopBar({ onExport }) {
           <Logo className="h-7" />
         </Link>
         <span className="ml-2 hidden border-2 border-border px-2 py-1 font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground md:inline-block">
-          {formatSpec.id === 'square' ? '1:1' : '9:16'} · {FORMATS[state.format].height}p · H.264
+          {formatSpec.id === 'square' ? '1:1' : '9:16'} · {FORMATS[state.format].height}p ·{' '}
+          {EXPORT.maxFps}fps · H.264
         </span>
       </div>
 

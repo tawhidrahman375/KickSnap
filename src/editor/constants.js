@@ -96,6 +96,12 @@ export const DEAD_ZONE_WARNING = 'Too low — may be rejected'
 export const EXPORT = {
   codec: 'avc', // H.264 — most compatible across TikTok/Shorts/Reels
   keyFrameInterval: 2,
+  // Cap the output frame rate. Profiling showed encode is ~85% of export time
+  // (decode ~3%, compositing ~4-7% even with per-frame gaussian blur), so frame
+  // COUNT is the only real lever on speed. Kick clips are commonly 60fps, and
+  // TikTok/Shorts/Reels all deliver at 30 — encoding 60 doubles the work for
+  // frames the platform discards. A 30fps source is untouched.
+  maxFps: 30,
 }
 
 // Credit cost per export.

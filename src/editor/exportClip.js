@@ -192,6 +192,18 @@ export async function exportClip(file, state, onProgress = () => {}, signal) {
   }
 
   // --- Video: decode → composite → encode, segment by segment ---
+  // Frame-rate cap: keep the frame nearest each slot on a fixed 1/maxFps grid.
+  // Decoding is cheap (~3% of export); it's the encode we're avoiding.
+  //
+  // Anchored to a grid rather than to the gap since the last kept frame, so the
+  // spacing can't drift over a long clip. The tolerance matters: source
+  // timestamps arrive quantized to ~1ms (0, 0.016, 0.033 …), so a naive
+  // "gap >= 1/30" test rejects a 60fps source's 0.033 frame by 0.0002s and
+  // silently yields 20fps. 0.4 of a step comfortably absorbs that, while still
+  // being under a full step so a true 30fps source keeps every frame.
+  const step = EXPORT.maxFps ? 1 / EXPORT.maxFps : 0
+  const tol = step * 0.4
+  let kept = 0
   let done = 0
   for (let i = 0; i < segments.length; i++) {
     const s = Math.max(0, segments[i].in)
@@ -204,10 +216,19 @@ export async function exportClip(file, state, onProgress = () => {}, signal) {
         sample.close()
         await abortIfCanceled()
       }
-      composeFrame(ctx, W, H, sample, drawState)
       const rel = Math.max(0, sample.timestamp - s)
-      const dur = sample.duration || 1 / 30
-      await videoSource.add(offsets[i] + rel, dur)
+      const outT = offsets[i] + rel
+      if (step && outT < kept * step - tol) {
+        sample.close()
+        continue
+      }
+      kept++
+
+      composeFrame(ctx, W, H, sample, drawState)
+      // Stretch each kept frame over the gap left by any skipped ones, so the
+      // output has no holes in its presentation timeline.
+      const dur = step ? Math.max(sample.duration || 0, step) : sample.duration || 1 / 30
+      await videoSource.add(outT, dur)
       sample.close()
       report(Math.min(0.98, (done + rel) / span))
     }
