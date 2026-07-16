@@ -70,6 +70,7 @@ export default function Timeline({
   onScrubEnd,
   onTrimPreview,
   onTrimEnd,
+  embedded = false,
 }) {
   const { state, dispatch, selectedSegment, canUndo, canRedo } = useEditor()
   const { segments, snap, audio } = state
@@ -167,90 +168,99 @@ export default function Timeline({
   const muted = audio.muted || audio.volume === 0
 
   return (
-    <div className="border-t-2 border-border bg-[oklch(0.1_0_0)] px-4 py-3">
+    <div className={cn('border-t-2 border-border bg-[oklch(0.1_0_0)] px-4', embedded ? 'py-2' : 'py-3')}>
       {/* controls: [ segment actions ]  [ PLAY ]  [ volume + time ] */}
-      <div className="mb-3 flex items-center gap-3">
-        {/* left: segment tools */}
-        <div className="flex flex-1 items-center gap-1.5">
-          <ToolBtn
-            title="Undo (Ctrl+Z)"
-            onClick={() => dispatch({ type: 'UNDO' })}
-            disabled={!canUndo}
-          >
-            <Undo2 className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <ToolBtn
-            title="Redo (Ctrl+Shift+Z)"
-            onClick={() => dispatch({ type: 'REDO' })}
-            disabled={!canRedo}
-          >
-            <Redo2 className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <div className="mx-1 h-6 w-px bg-border" />
-          <ToolBtn
-            title="Split at playhead (S)"
-            onClick={() => dispatch({ type: 'SPLIT_SEGMENT', time: currentTime })}
-            disabled={!canEdit}
-          >
-            <SplitIcon className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <ToolBtn
-            title="Split left — trim start to playhead (Q)"
-            onClick={() => dispatch({ type: 'TRIM_TO_PLAYHEAD', side: 'in', time: currentTime })}
-            disabled={!selectedSegment}
-          >
-            <ArrowLeftToLine className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <ToolBtn
-            title="Split right — trim end to playhead (W)"
-            onClick={() => dispatch({ type: 'TRIM_TO_PLAYHEAD', side: 'out', time: currentTime })}
-            disabled={!selectedSegment}
-          >
-            <ArrowRightToLine className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <ToolBtn
-            title="Reset trim (R)"
-            onClick={() => dispatch({ type: 'RESET_TRIM' })}
-            disabled={!selectedSegment}
-          >
-            <RotateCcw className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <div className="mx-1 h-6 w-px bg-border" />
-          <ToolBtn
-            title="Duplicate clip (D)"
-            onClick={() => dispatch({ type: 'DUPLICATE_SEGMENT' })}
-            disabled={!canEdit}
-          >
-            <Copy className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <ToolBtn
-            title="Delete clip (Del)"
-            onClick={() => dispatch({ type: 'DELETE_SEGMENT' })}
-            disabled={segments.length <= 1}
-            danger
-          >
-            <Trash2 className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-          <div className="mx-1 h-6 w-px bg-border" />
-          <ToolBtn
-            title={snap ? 'Snap: on (N)' : 'Snap: off (N)'}
-            onClick={() => dispatch({ type: 'TOGGLE_SNAP' })}
-            active={snap}
-          >
-            <Magnet className="size-4" strokeWidth={2.25} />
-          </ToolBtn>
-        </div>
+      <div className={cn('flex items-center gap-3', embedded ? 'mb-2' : 'mb-3')}>
+        {/* left: segment tools — full power-editing set on the real editor;
+            the embedded demo keeps only drag-to-trim (on the handles below),
+            so this whole group is dropped there rather than shown disabled. */}
+        {embedded ? (
+          <div className="flex-1" />
+        ) : (
+          <div className="flex flex-1 items-center gap-1.5">
+            <ToolBtn
+              title="Undo (Ctrl+Z)"
+              onClick={() => dispatch({ type: 'UNDO' })}
+              disabled={!canUndo}
+            >
+              <Undo2 className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <ToolBtn
+              title="Redo (Ctrl+Shift+Z)"
+              onClick={() => dispatch({ type: 'REDO' })}
+              disabled={!canRedo}
+            >
+              <Redo2 className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <div className="mx-1 h-6 w-px bg-border" />
+            <ToolBtn
+              title="Split at playhead (S)"
+              onClick={() => dispatch({ type: 'SPLIT_SEGMENT', time: currentTime })}
+              disabled={!canEdit}
+            >
+              <SplitIcon className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <ToolBtn
+              title="Split left — trim start to playhead (Q)"
+              onClick={() => dispatch({ type: 'TRIM_TO_PLAYHEAD', side: 'in', time: currentTime })}
+              disabled={!selectedSegment}
+            >
+              <ArrowLeftToLine className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <ToolBtn
+              title="Split right — trim end to playhead (W)"
+              onClick={() => dispatch({ type: 'TRIM_TO_PLAYHEAD', side: 'out', time: currentTime })}
+              disabled={!selectedSegment}
+            >
+              <ArrowRightToLine className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <ToolBtn
+              title="Reset trim (R)"
+              onClick={() => dispatch({ type: 'RESET_TRIM' })}
+              disabled={!selectedSegment}
+            >
+              <RotateCcw className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <div className="mx-1 h-6 w-px bg-border" />
+            <ToolBtn
+              title="Duplicate clip (D)"
+              onClick={() => dispatch({ type: 'DUPLICATE_SEGMENT' })}
+              disabled={!canEdit}
+            >
+              <Copy className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <ToolBtn
+              title="Delete clip (Del)"
+              onClick={() => dispatch({ type: 'DELETE_SEGMENT' })}
+              disabled={segments.length <= 1}
+              danger
+            >
+              <Trash2 className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+            <div className="mx-1 h-6 w-px bg-border" />
+            <ToolBtn
+              title={snap ? 'Snap: on (N)' : 'Snap: off (N)'}
+              onClick={() => dispatch({ type: 'TOGGLE_SNAP' })}
+              active={snap}
+            >
+              <Magnet className="size-4" strokeWidth={2.25} />
+            </ToolBtn>
+          </div>
+        )}
 
         {/* center: prominent play button */}
         <button
           onClick={onTogglePlay}
           title={playing ? 'Pause (Space)' : 'Play (Space)'}
-          className="flex size-14 shrink-0 items-center justify-center rounded-full bg-kick text-black shadow-[0_0_28px_-6px_rgba(83,252,24,0.7)] transition-transform hover:scale-105 active:scale-95"
+          className={cn(
+            'flex shrink-0 items-center justify-center rounded-full bg-kick text-black shadow-[0_0_28px_-6px_rgba(83,252,24,0.7)] transition-transform hover:scale-105 active:scale-95',
+            embedded ? 'size-11' : 'size-14',
+          )}
         >
           {playing ? (
-            <Pause className="size-7" strokeWidth={2.5} />
+            <Pause className={embedded ? 'size-5' : 'size-7'} strokeWidth={2.5} />
           ) : (
-            <Play className="size-7 translate-x-0.5" strokeWidth={2.5} fill="currentColor" />
+            <Play className={cn('translate-x-0.5', embedded ? 'size-5' : 'size-7')} strokeWidth={2.5} fill="currentColor" />
           )}
         </button>
 
@@ -287,14 +297,19 @@ export default function Timeline({
         </div>
       </div>
 
-      {/* time ruler */}
-      {total > 0 && <Ruler total={total} />}
+      {/* time ruler — dropped in the demo; current/total time already reads in
+          the controls row above, and this buys back real vertical space for
+          the video, which is the entire point of the demo. */}
+      {!embedded && total > 0 && <Ruler total={total} />}
 
       {/* segment track */}
       <div
         ref={trackRef}
         onPointerDown={startScrub}
-        className="relative h-16 cursor-pointer select-none border-2 border-border bg-[repeating-linear-gradient(90deg,transparent,transparent_9px,rgba(255,255,255,0.05)_9px,rgba(255,255,255,0.05)_10px)]"
+        className={cn(
+          'relative cursor-pointer select-none border-2 border-border bg-[repeating-linear-gradient(90deg,transparent,transparent_9px,rgba(255,255,255,0.05)_9px,rgba(255,255,255,0.05)_10px)]',
+          embedded ? 'h-12' : 'h-16',
+        )}
       >
         {/* segment blocks */}
         {segments.map((s, i) => {
@@ -350,39 +365,44 @@ export default function Timeline({
         </div>
       </div>
 
-      {/* meta row */}
-      <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
-        <div className="flex items-center gap-2">
-          <span>
-            {segments.length} clip{segments.length === 1 ? '' : 's'} · {snap ? 'snap on' : 'snap off'}
-          </span>
-          {selectedSegment && (
-            <span className="tabular-nums">
-              · In <span className="text-foreground">{fmt(selectedSegment.in)}</span> Out{' '}
-              <span className="text-foreground">{fmt(selectedSegment.out)}</span> Len{' '}
-              <span className="text-kick">{fmt(selectedSegment.out - selectedSegment.in)}</span>
+      {/* meta row — dropped in the demo along with the ruler; segment count /
+          snap state / shortcuts aren't needed to sell format+effects+overlay,
+          and the current/total time is already visible in the controls row. */}
+      {!embedded && (
+        <div className="mt-2 flex items-center justify-between font-mono text-[10px] uppercase tracking-widest text-muted-foreground">
+          <div className="flex items-center gap-2">
+            <span>
+              {segments.length} clip{segments.length === 1 ? '' : 's'} · {snap ? 'snap on' : 'snap off'}
             </span>
-          )}
-          {/* keyboard shortcuts legend */}
-          <div className="group relative">
-            <Keyboard className="size-3.5 cursor-help text-muted-foreground/70 transition-colors hover:text-kick" strokeWidth={2} />
-            <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 hidden w-56 border-2 border-border bg-popover p-2 shadow-xl group-hover:block">
-              <div className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-widest text-kick">
-                Shortcuts
-              </div>
-              <div className="flex flex-col gap-1">
-                {SHORTCUTS.map(([key, label]) => (
-                  <div key={key} className="flex items-center justify-between gap-2">
-                    <span className="text-[10px] normal-case tracking-normal text-muted-foreground">{label}</span>
-                    <kbd className="border border-border bg-card px-1.5 py-0.5 text-[9px] font-bold text-foreground">{key}</kbd>
-                  </div>
-                ))}
+            {selectedSegment && (
+              <span className="tabular-nums">
+                · In <span className="text-foreground">{fmt(selectedSegment.in)}</span> Out{' '}
+                <span className="text-foreground">{fmt(selectedSegment.out)}</span> Len{' '}
+                <span className="text-kick">{fmt(selectedSegment.out - selectedSegment.in)}</span>
+              </span>
+            )}
+            {/* keyboard shortcuts legend — only meaningful where the shortcuts
+                are actually live; the embedded demo disables them entirely. */}
+            <div className="group relative">
+              <Keyboard className="size-3.5 cursor-help text-muted-foreground/70 transition-colors hover:text-kick" strokeWidth={2} />
+              <div className="pointer-events-none absolute bottom-full left-0 z-50 mb-2 hidden w-56 border-2 border-border bg-popover p-2 shadow-xl group-hover:block">
+                <div className="mb-1.5 font-mono text-[9px] font-bold uppercase tracking-widest text-kick">
+                  Shortcuts
+                </div>
+                <div className="flex flex-col gap-1">
+                  {SHORTCUTS.map(([key, label]) => (
+                    <div key={key} className="flex items-center justify-between gap-2">
+                      <span className="text-[10px] normal-case tracking-normal text-muted-foreground">{label}</span>
+                      <kbd className="border border-border bg-card px-1.5 py-0.5 text-[9px] font-bold text-foreground">{key}</kbd>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </div>
+          <span>Total {fmt(total)}</span>
         </div>
-        <span>Total {fmt(total)}</span>
-      </div>
+      )}
     </div>
   )
 }

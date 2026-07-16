@@ -26,7 +26,7 @@ const SNAP_EPS = 0.02
 const clamp = (v, lo, hi) => Math.min(hi, Math.max(lo, v))
 const cssT = (t) => `translate(${t.x * 100}%, ${t.y * 100}%) scale(${t.scale})`
 
-export default function Preview({ videoRef }) {
+export default function Preview({ videoRef, embedded = false }) {
   const { state, dispatch } = useEditor()
   const { format, effect, clip, loading, split, error, blur, transform, selectedElement } = state
   const frameRef = useRef(null)
@@ -181,7 +181,10 @@ export default function Preview({ videoRef }) {
       onPointerDown={(e) => {
         if (e.target === viewportRef.current) dispatch({ type: 'SELECT_ELEMENT', element: null })
       }}
-      className="relative flex min-h-0 flex-1 items-center justify-center overflow-hidden p-4 sm:p-8"
+      className={cn(
+        'relative flex min-h-0 flex-1 items-center justify-center overflow-hidden',
+        embedded ? 'p-1 sm:p-2' : 'p-4 sm:p-8',
+      )}
     >
       <div
         className="relative h-full max-h-full transition-transform duration-100"

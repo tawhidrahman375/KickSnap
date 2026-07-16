@@ -9,8 +9,17 @@ import Preview from './Preview'
 import Timeline from './Timeline'
 import ExportOverlay from './ExportOverlay'
 import DiscordReward from './DiscordReward'
+import { ArrowRight } from 'lucide-react'
+import { cn } from '@/lib/utils'
 
-export default function EditorShell() {
+/**
+ * The full editor. `embedded` renders it inside a landing-page frame instead of
+ * full-screen: it fills its container, drops the global keyboard shortcuts (so
+ * it never hijacks page scrolling), skips the export/Discord modals, and swaps
+ * the dashboard TopBar for a slim "Sign up to export" gate. The /editor route
+ * passes nothing, so its behavior is unchanged.
+ */
+export default function EditorShell({ embedded = false, onLockedExport }) {
   const { state, dispatch } = useEditor()
   const videoRef = useRef(null)
   const [currentTime, setCurrentTimeState] = useState(0)
@@ -176,7 +185,10 @@ export default function EditorShell() {
   )
 
   // --- keyboard shortcuts (CapCut-ish) ---
+  // Skipped when embedded on the landing page so the editor never steals the
+  // page's Space/arrow scrolling from a visitor who hasn't clicked into it.
   useEffect(() => {
+    if (embedded) return
     function onKey(e) {
       const t = e.target
       if (t && (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.isContentEditable)) return
@@ -245,6 +257,8 @@ export default function EditorShell() {
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
+    // `embedded` is fixed for the life of the mount, so it's intentionally omitted.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [togglePlay, seek, dispatch, state.clip, state.audio.muted, total])
 
   async function handleExport() {
@@ -265,12 +279,21 @@ export default function EditorShell() {
 
   return (
     <PlaybackProvider value={{ currentTime, playing, total, seek, togglePlay }}>
-      <div className="flex h-svh flex-col overflow-hidden bg-background">
-        <TopBar onExport={handleExport} />
+      <div
+        className={cn(
+          'flex flex-col overflow-hidden bg-background',
+          embedded ? 'h-full' : 'h-svh',
+        )}
+      >
+        {embedded ? (
+          <DemoBar onLockedExport={onLockedExport} />
+        ) : (
+          <TopBar onExport={handleExport} />
+        )}
         <div className="flex min-h-0 flex-1">
-          <Sidebar />
+          <Sidebar embedded={embedded} onLocked={onLockedExport} />
           <div className="flex min-w-0 flex-1 flex-col">
-            <Preview videoRef={videoRef} />
+            <Preview videoRef={videoRef} embedded={embedded} />
             <Timeline
               currentTime={currentTime}
               playing={playing}
@@ -281,12 +304,40 @@ export default function EditorShell() {
               onScrubEnd={onScrubEnd}
               onTrimPreview={onTrimPreview}
               onTrimEnd={onTrimEnd}
+              embedded={embedded}
             />
           </div>
         </div>
       </div>
-      <ExportOverlay />
-      <DiscordReward />
+      {!embedded && <ExportOverlay />}
+      {!embedded && <DiscordReward />}
     </PlaybackProvider>
+  )
+}
+
+/**
+ * Slim header for the embedded landing demo — replaces the dashboard TopBar.
+ * Spells out "Demo — text, export & more require sign up" rather than a bare
+ * "Preview" pill, since Text is now a locked teaser tab and this is the one
+ * place that explains why. The button routes to the real editor (also the
+ * export funnel — once auth ships this becomes the gate).
+ */
+function DemoBar({ onLockedExport }) {
+  return (
+    <header className="flex h-9 shrink-0 items-center justify-between gap-2 border-b border-border bg-background px-3">
+      <span className="flex items-center gap-1.5 rounded-md border border-kick/40 bg-kick/10 px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wider text-kick">
+        Demo
+        <span className="hidden font-normal normal-case tracking-normal text-muted-foreground sm:inline">
+          — sign up for text, export &amp; more
+        </span>
+      </span>
+      <button
+        onClick={onLockedExport}
+        className="flex h-7 shrink-0 items-center gap-1.5 rounded-md bg-kick px-3 text-[13px] font-semibold text-black transition-colors hover:bg-kick-hover"
+      >
+        Open full editor
+        <ArrowRight className="size-3.5" strokeWidth={2.5} />
+      </button>
+    </header>
   )
 }

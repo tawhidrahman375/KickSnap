@@ -1,110 +1,120 @@
-import { Scissors, Crop, Users, Type, Lock } from 'lucide-react'
+import { lazy, Suspense, useEffect, useRef, useState } from 'react'
+import { useNavigate } from 'react-router-dom'
+import { Loader2, Monitor, ArrowRight } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Reveal from './Reveal'
 import Eyebrow from './Eyebrow'
 
-/**
- * PLACEHOLDER editor mockup. Once the real WebCodecs editor is built it gets
- * embedded here in a locked "Sign up to export" state (see spec §Live Demo).
- */
-const TOOLS = [Scissors, Crop, Users, Type]
+// The real WebCodecs editor pulls in mediabunny — code-split it so it only
+// loads once this section scrolls into view, keeping the initial bundle lean.
+const EmbeddedEditor = lazy(() => import('@/editor/EmbeddedEditor'))
+
+/** Fire once when the referenced element nears the viewport. */
+function useInView(ref, rootMargin = '250px') {
+  const [inView, setInView] = useState(false)
+  useEffect(() => {
+    const el = ref.current
+    if (!el || inView) return
+    const io = new IntersectionObserver(
+      (entries) => {
+        if (entries[0].isIntersecting) {
+          setInView(true)
+          io.disconnect()
+        }
+      },
+      { rootMargin },
+    )
+    io.observe(el)
+    return () => io.disconnect()
+  }, [ref, inView, rootMargin])
+  return inView
+}
+
+/** The editor needs room for its sidebar + canvas + timeline — desktop only. */
+function useIsDesktop() {
+  const [desktop, setDesktop] = useState(() =>
+    typeof window !== 'undefined'
+      ? window.matchMedia('(min-width: 1024px)').matches
+      : true,
+  )
+  useEffect(() => {
+    const mq = window.matchMedia('(min-width: 1024px)')
+    const onChange = () => setDesktop(mq.matches)
+    mq.addEventListener('change', onChange)
+    return () => mq.removeEventListener('change', onChange)
+  }, [])
+  return desktop
+}
+
+function DemoLoading() {
+  return (
+    <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
+      <Loader2 className="size-5 animate-spin" strokeWidth={2} />
+      Loading the editor…
+    </div>
+  )
+}
+
+function MobileFallback({ onOpen }) {
+  return (
+    <div className="flex h-[420px] flex-col items-center justify-center gap-4 rounded-lg border border-border bg-background px-6 text-center">
+      <Monitor className="size-10 text-muted-foreground/50" strokeWidth={1.5} />
+      <div>
+        <div className="text-lg font-semibold">Best experienced on desktop</div>
+        <p className="mx-auto mt-1 max-w-sm text-sm text-muted-foreground">
+          The editor runs on your browser's video engine — open it on desktop Chrome or
+          Edge to try the full thing.
+        </p>
+      </div>
+      <Button onClick={onOpen} className="font-semibold">
+        Open the editor <ArrowRight className="size-4" strokeWidth={2.5} />
+      </Button>
+    </div>
+  )
+}
 
 export default function LiveDemo() {
+  const navigate = useNavigate()
+  const frameRef = useRef(null)
+  const inView = useInView(frameRef)
+  const isDesktop = useIsDesktop()
+  const showEditor = inView && isDesktop
+
   return (
-    <section className="border-t-2 border-border bg-background py-20 sm:py-24">
+    <section id="demo" className="scroll-mt-20 border-t border-border bg-background py-14 sm:py-16">
       <div className="mx-auto max-w-5xl px-6">
         <Reveal className="max-w-3xl">
           <Eyebrow>Live demo</Eyebrow>
-          <h2 className="font-display text-[clamp(2.5rem,6vw,4.5rem)] uppercase leading-[0.9] tracking-tight text-foreground">
-            Try it before
-            <br />
-            you sign up.
+          <h2 className="font-display text-[clamp(2.25rem,5vw,3.75rem)] uppercase leading-[0.9] tracking-tight text-foreground">
+            Try it live.
           </h2>
-          <p className="mt-5 max-w-xl text-lg font-medium text-muted-foreground">
-            The real editor, right here. Format, pick a streamer, add text — you
-            only sign up to export.
-          </p>
         </Reveal>
 
-        <Reveal delay={0.1} className="mt-12">
-          <div className="relative border-2 border-kick/40 bg-card p-3 shadow-[0_0_60px_-15px_rgba(83,252,24,0.25)]">
+        <Reveal delay={0.1} className="mt-8">
+          <div
+            ref={frameRef}
+            className="relative rounded-xl border border-border bg-card p-2.5 shadow-2xl shadow-black/40"
+          >
             {/* window chrome */}
-            <div className="flex items-center gap-1.5 px-3 py-2">
-              <span className="size-3 bg-destructive/60" />
-              <span className="size-3 bg-yellow-500/60" />
-              <span className="size-3 bg-kick/60" />
+            <div className="flex items-center gap-1.5 px-1.5 py-1.5">
+              <span className="size-2.5 rounded-full bg-destructive/50" />
+              <span className="size-2.5 rounded-full bg-yellow-500/50" />
+              <span className="size-2.5 rounded-full bg-kick/50" />
             </div>
 
-            <div className="flex gap-3 border-2 border-border bg-background/60 p-4">
-              {/* tool rail */}
-              <div className="flex flex-col gap-2">
-                {TOOLS.map((Icon, i) => (
-                  <div
-                    key={i}
-                    className="flex size-10 items-center justify-center border-2 border-border bg-card text-muted-foreground"
-                  >
-                    <Icon className="size-5" strokeWidth={2.5} />
-                  </div>
-                ))}
+            {isDesktop ? (
+              <div className="h-[880px] overflow-hidden rounded-lg border border-border bg-background">
+                {showEditor ? (
+                  <Suspense fallback={<DemoLoading />}>
+                    <EmbeddedEditor onLockedExport={() => navigate('/editor')} />
+                  </Suspense>
+                ) : (
+                  <DemoLoading />
+                )}
               </div>
-
-              {/* preview */}
-              <div className="flex flex-1 items-center justify-center py-4">
-                <div
-                  className="relative aspect-[9/16] w-44 overflow-hidden border-2 border-border sm:w-52"
-                  style={{
-                    background:
-                      'linear-gradient(160deg, #1a2e12 0%, #2d5016 40%, #53fc18 70%, #1a2e12 100%)',
-                  }}
-                >
-                  {/* caption */}
-                  <div className="absolute inset-x-0 top-1/3 text-center">
-                    <span
-                      className="text-lg font-extrabold text-white uppercase sm:text-xl"
-                      style={{ WebkitTextStroke: '1.5px black' }}
-                    >
-                      He actually
-                      <br />
-                      did it 😳
-                    </span>
-                  </div>
-                  {/* kick overlay */}
-                  <div className="absolute inset-x-0 bottom-0 flex items-center justify-center gap-1.5 bg-black/85 py-2">
-                    <span className="text-xs font-extrabold text-kick">KICK</span>
-                    <span className="text-xs font-medium text-white">
-                      kick.com/adinross
-                    </span>
-                  </div>
-                </div>
-              </div>
-
-              {/* mini controls */}
-              <div className="hidden w-32 flex-col gap-2 sm:flex">
-                <div className="border-2 border-border bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Format
-                  <div className="mt-1 text-sm font-bold text-foreground">9:16 ✓</div>
-                </div>
-                <div className="border-2 border-border bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Streamer
-                  <div className="mt-1 text-sm font-bold text-foreground">Adin Ross</div>
-                </div>
-                <div className="border-2 border-border bg-card px-3 py-2 font-mono text-[10px] uppercase tracking-wide text-muted-foreground">
-                  Effect
-                  <div className="mt-1 text-sm font-bold text-foreground">Blurred BG</div>
-                </div>
-              </div>
-            </div>
-
-            {/* locked export */}
-            <div className="flex items-center justify-between px-4 py-3">
-              <span className="font-mono text-xs uppercase tracking-wide text-muted-foreground">
-                9:16 · 1080p · H.264
-              </span>
-              <Button className="gap-2 rounded-none bg-kick font-bold uppercase tracking-wide text-black hover:bg-kick-hover">
-                <Lock className="size-4" strokeWidth={2.5} />
-                Sign up to export
-              </Button>
-            </div>
+            ) : (
+              <MobileFallback onOpen={() => navigate('/editor')} />
+            )}
           </div>
         </Reveal>
       </div>
