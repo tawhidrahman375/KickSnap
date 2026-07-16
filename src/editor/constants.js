@@ -102,5 +102,5 @@ export const CREDIT_COST = 1
 
 // Discord community reward. Joining the server grants a one-time credit bonus.
 // TODO: gate the reward behind Discord OAuth (post-MVP) so it can't be re-claimed.
-export const DISCORD_INVITE = 'https://discord.gg/DT7HvKQ9G'
+export { DISCORD_URL as DISCORD_INVITE } from '@/lib/site'
 export const DISCORD_BONUS_CREDITS = 5

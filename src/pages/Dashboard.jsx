@@ -28,9 +28,8 @@ import {
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
 import { Button } from '@/components/ui/button'
+import { DISCORD_URL } from '@/lib/site'
 import { cn } from '@/lib/utils'
-
-const DISCORD_URL = 'https://discord.gg/DT7HvKQ9Gw'
 
 const NAV = [
   { id: 'overview', label: 'Overview', icon: LayoutDashboard },

@@ -1,8 +1,7 @@
 import { Link } from 'react-router-dom'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
-
-const DISCORD_URL = 'https://discord.gg/DT7HvKQ9G'
+import { DISCORD_URL } from '@/lib/site'
 
 const LINKS = [
   { label: 'Privacy Policy', to: '/privacy' },
@@ -31,6 +30,15 @@ export default function Footer() {
               {link.label}
             </Link>
           ))}
+          <a
+            href={DISCORD_URL}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 font-mono text-xs font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:text-kick"
+          >
+            <DiscordIcon className="size-4" />
+            Discord
+          </a>
         </div>
       </div>
       <div className="mx-auto mt-8 max-w-6xl px-6 text-center font-mono text-[11px] uppercase tracking-widest text-muted-foreground/60 sm:text-left">

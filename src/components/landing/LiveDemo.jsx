@@ -1,6 +1,6 @@
 import { lazy, Suspense, useEffect, useRef, useState } from 'react'
 import { useNavigate } from 'react-router-dom'
-import { Loader2, Monitor, ArrowRight } from 'lucide-react'
+import { Loader2, Monitor, ArrowRight, Clapperboard } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import Reveal from './Reveal'
 import Eyebrow from './Eyebrow'
@@ -40,6 +40,10 @@ function useIsDesktop() {
   useEffect(() => {
     const mq = window.matchMedia('(min-width: 1024px)')
     const onChange = () => setDesktop(mq.matches)
+    // Resync on mount: the initializer ran during render, and the width can
+    // differ by the time the effect fires (or be reported as 0 pre-layout),
+    // which would strand the demo on the wrong branch until the next resize.
+    onChange()
     mq.addEventListener('change', onChange)
     return () => mq.removeEventListener('change', onChange)
   }, [])
@@ -51,6 +55,20 @@ function DemoLoading() {
     <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground">
       <Loader2 className="size-5 animate-spin" strokeWidth={2} />
       Loading the editor…
+    </div>
+  )
+}
+
+/**
+ * Holds the frame's space before the editor starts fetching. Deliberately NOT
+ * the loading spinner — nothing is loading yet, and a spinner here is
+ * indistinguishable from a genuinely stuck load.
+ */
+function DemoIdle() {
+  return (
+    <div className="flex h-full items-center justify-center gap-2 text-sm text-muted-foreground/60">
+      <Clapperboard className="size-5" strokeWidth={1.75} />
+      Scroll to load the editor
     </div>
   )
 }
@@ -109,7 +127,7 @@ export default function LiveDemo() {
                     <EmbeddedEditor onLockedExport={() => navigate('/editor')} />
                   </Suspense>
                 ) : (
-                  <DemoLoading />
+                  <DemoIdle />
                 )}
               </div>
             ) : (

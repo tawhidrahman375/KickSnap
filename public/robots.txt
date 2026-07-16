@@ -1,0 +1,8 @@
+User-agent: *
+Allow: /
+
+# App surfaces — nothing useful to index, and they're client-rendered.
+Disallow: /editor
+Disallow: /dashboard
+
+Sitemap: https://kicksnap.com/sitemap.xml

@@ -3,9 +3,8 @@ import { Link, useNavigate } from 'react-router-dom'
 import { Button } from '@/components/ui/button'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
+import { DISCORD_URL } from '@/lib/site'
 import { cn } from '@/lib/utils'
-
-const DISCORD_URL = 'https://discord.gg/DT7HvKQ9G'
 
 const NAV_LINKS = [
   { label: 'Features', href: '#features' },
