@@ -1,33 +1,65 @@
-import { useRef } from 'react'
-import { Upload, RotateCcw } from 'lucide-react'
+import { useRef, useState } from 'react'
+import { Upload, RotateCcw, Check } from 'lucide-react'
 import { useEditor } from '../EditorContext'
+import { cn } from '@/lib/utils'
 import StreamerSelector from '../StreamerSelector'
 
 /** Streamer selector + custom overlay import + overlay vertical position slider. */
 export default function OverlayPanel() {
   const { state, dispatch } = useEditor()
-  const { position, custom } = state.overlay
+  const { position, custom, image } = state.overlay
   const fileRef = useRef(null)
+  const [dragging, setDragging] = useState(false)
+  const [rejected, setRejected] = useState(false)
 
   function importOverlay(file) {
     if (!file) return
-    const url = URL.createObjectURL(file)
-    dispatch({ type: 'IMPORT_OVERLAY', url })
+    // A drop can be anything (the file picker's accept="image/*" only guards the
+    // browse path), and a non-image would render as a broken overlay.
+    if (!file.type.startsWith('image/')) {
+      setRejected(true)
+      return
+    }
+    setRejected(false)
+    // Release the previous import's blob before replacing it — the URL lives in
+    // state, so without this each re-import leaks the old one for the session.
+    if (custom && image?.startsWith('blob:')) URL.revokeObjectURL(image)
+    dispatch({ type: 'IMPORT_OVERLAY', url: URL.createObjectURL(file) })
+  }
+
+  function resetOverlay() {
+    if (custom && image?.startsWith('blob:')) URL.revokeObjectURL(image)
+    setRejected(false)
+    dispatch({ type: 'RESET_OVERLAY' })
   }
 
   return (
     <div className="flex flex-col gap-5">
-      {/* import your own — for streamers not on the list */}
+      {/* Import your own — the escape hatch for streamers not in the list. It
+          sits above a grid of 70+ faces, so it needs enough contrast to not read
+          as a disabled afterthought. */}
       <div className="border-b-2 border-border pb-4">
+        <div className="mb-2 flex items-center justify-between">
+          <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-muted-foreground">
+            Your own overlay
+          </span>
+          {!custom && (
+            <span className="font-mono text-[10px] uppercase tracking-wide text-muted-foreground/70">
+              Not on the list?
+            </span>
+          )}
+        </div>
+
         {custom ? (
-          <div className="flex items-center justify-between gap-2 border-2 border-kick bg-kick/10 px-3 py-2.5">
-            <span className="font-mono text-[10px] font-bold uppercase tracking-widest text-kick">
-              Custom overlay imported
+          <div className="flex items-center justify-between gap-2 rounded-md border-2 border-kick bg-kick/10 px-3 py-2.5">
+            <span className="flex items-center gap-2 text-sm font-semibold text-kick">
+              <Check className="size-4 shrink-0" strokeWidth={3} />
+              Custom overlay in use
             </span>
             <button
-              onClick={() => dispatch({ type: 'RESET_OVERLAY' })}
+              onClick={resetOverlay}
               title="Back to default"
-              className="flex items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
+              className="flex shrink-0 items-center gap-1 font-mono text-[10px] font-bold uppercase tracking-wide text-muted-foreground transition-colors hover:text-foreground"
             >
               <RotateCcw className="size-3" strokeWidth={2.5} />
               Reset
@@ -36,15 +68,44 @@ export default function OverlayPanel() {
         ) : (
           <button
             onClick={() => fileRef.current?.click()}
-            className="flex w-full items-center justify-center gap-2 border-2 border-dashed border-border px-4 py-3 font-mono text-[11px] font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:border-kick hover:text-foreground"
+            onDragOver={(e) => {
+              e.preventDefault()
+              setDragging(true)
+            }}
+            onDragLeave={() => setDragging(false)}
+            onDrop={(e) => {
+              e.preventDefault()
+              setDragging(false)
+              importOverlay(e.dataTransfer.files?.[0])
+            }}
+            className={cn(
+              'flex w-full flex-col items-center gap-2 rounded-md border-2 border-dashed px-4 py-5 text-center transition-colors',
+              dragging
+                ? 'border-kick bg-kick/15'
+                : 'border-kick/40 bg-kick/5 hover:border-kick hover:bg-kick/10',
+            )}
           >
-            <Upload className="size-4" strokeWidth={2.5} />
-            Import your own overlay
+            <span className="flex size-9 items-center justify-center rounded-md bg-kick/15 text-kick">
+              <Upload className="size-[18px]" strokeWidth={2.5} />
+            </span>
+            <span className="text-sm font-semibold text-foreground">
+              {dragging ? 'Drop to use it' : 'Import your own overlay'}
+            </span>
+            <span className="text-xs text-muted-foreground">
+              Drag a PNG here, or click to browse
+            </span>
           </button>
         )}
-        <p className="mt-1.5 font-mono text-[10px] leading-relaxed uppercase tracking-wide text-muted-foreground/70">
-          Streamer not on the list? Drop in their Kick overlay PNG — it locks to
-          the same spot with the same rules.
+
+        <p
+          className={cn(
+            'mt-2 font-mono text-[10px] leading-relaxed uppercase tracking-wide',
+            rejected ? 'text-destructive' : 'text-muted-foreground/70',
+          )}
+        >
+          {rejected
+            ? "That file isn't an image — drop a PNG overlay."
+            : 'Any Kick overlay PNG works. It locks to the same spot, with the same rules.'}
         </p>
         <input
           ref={fileRef}
