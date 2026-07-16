@@ -4,6 +4,10 @@ import Landing from '@/pages/Landing'
 import LegalPage from '@/pages/LegalPage'
 import Dashboard from '@/pages/Dashboard'
 import NotFound from '@/pages/NotFound'
+import SignIn from '@/pages/SignIn'
+import AuthCallback from '@/pages/AuthCallback'
+import RequireAuth from '@/components/RequireAuth'
+import { AuthProvider } from '@/lib/auth'
 
 // Editor pulls in the WebCodecs/mediabunny pipeline — code-split it so the
 // landing page's initial bundle stays lean.
@@ -16,6 +20,7 @@ const TITLES = {
   '/': 'KickSnap — The clip editor built for Kick clippers',
   '/editor': 'Editor — KickSnap',
   '/dashboard': 'Dashboard — KickSnap',
+  '/signin': 'Sign in — KickSnap',
 }
 
 /**
@@ -40,7 +45,7 @@ function RouteEffects() {
 
 function App() {
   return (
-    <>
+    <AuthProvider>
       <RouteEffects />
       <Routes>
         <Route path="/" element={<Landing />} />
@@ -52,13 +57,22 @@ function App() {
             </Suspense>
           }
         />
-        <Route path="/dashboard" element={<Dashboard />} />
+        <Route
+          path="/dashboard"
+          element={
+            <RequireAuth>
+              <Dashboard />
+            </RequireAuth>
+          }
+        />
+        <Route path="/signin" element={<SignIn />} />
+        <Route path="/auth/callback" element={<AuthCallback />} />
         <Route path="/privacy" element={<LegalPage doc="privacy" />} />
         <Route path="/terms" element={<LegalPage doc="terms" />} />
         <Route path="/cookies" element={<LegalPage doc="cookies" />} />
         <Route path="*" element={<NotFound />} />
       </Routes>
-    </>
+    </AuthProvider>
   )
 }
 

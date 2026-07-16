@@ -29,6 +29,7 @@ import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
 import { Button } from '@/components/ui/button'
 import { DISCORD_URL } from '@/lib/site'
+import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -130,15 +131,7 @@ export default function Dashboard() {
         </nav>
 
         <div className="border-t border-border p-3">
-          <div className="flex items-center gap-3 rounded-md px-2 py-2">
-            <div className="flex size-9 shrink-0 items-center justify-center rounded-full bg-foreground/10 text-muted-foreground">
-              <User className="size-4" strokeWidth={2} />
-            </div>
-            <div className="min-w-0">
-              <div className="truncate text-sm font-medium">Guest</div>
-              <div className="truncate text-xs text-muted-foreground">Not signed in</div>
-            </div>
-          </div>
+          <SidebarUser onOpenSettings={() => setTab('settings')} />
         </div>
       </aside>
 
@@ -217,6 +210,74 @@ export default function Dashboard() {
 
 /* ---------------- Shared ---------------- */
 
+/**
+ * Discord's CDN can 404 an avatar (account deleted its image, or the hash went
+ * stale between logins), and a broken <img> in the sidebar looks like the app is
+ * broken. Fall back to the generic user mark instead.
+ */
+function Avatar({ profile, className }) {
+  const [failed, setFailed] = useState(false)
+  const showImage = profile?.avatarUrl && !failed
+
+  return (
+    <div
+      className={cn(
+        'flex size-9 shrink-0 items-center justify-center overflow-hidden rounded-full bg-foreground/10 text-muted-foreground',
+        className,
+      )}
+    >
+      {showImage ? (
+        <img
+          src={profile.avatarUrl}
+          alt=""
+          className="size-full object-cover"
+          referrerPolicy="no-referrer"
+          onError={() => setFailed(true)}
+        />
+      ) : (
+        <User className="size-4" strokeWidth={2} />
+      )}
+    </div>
+  )
+}
+
+function SidebarUser({ onOpenSettings }) {
+  const { profile, isConfigured } = useAuth()
+
+  // Guest is only reachable with sign-in switched off (no env vars) — the route
+  // is gated otherwise. Keep the old resting state for that case.
+  if (!profile) {
+    return (
+      <div className="flex items-center gap-3 rounded-md px-2 py-2">
+        <Avatar profile={null} />
+        <div className="min-w-0">
+          <div className="truncate text-sm font-medium">Guest</div>
+          <div className="truncate text-xs text-muted-foreground">
+            {isConfigured ? 'Not signed in' : 'Sign-in not configured'}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  return (
+    <button
+      onClick={onOpenSettings}
+      title="Account settings"
+      className="flex w-full items-center gap-3 rounded-md px-2 py-2 text-left transition-colors hover:bg-foreground/5"
+    >
+      <Avatar profile={profile} />
+      <div className="min-w-0 flex-1">
+        <div className="truncate text-sm font-medium">{profile.name}</div>
+        <div className="truncate text-xs text-muted-foreground">
+          {profile.username ? `@${profile.username}` : profile.email}
+        </div>
+      </div>
+      <Settings className="size-4 shrink-0 text-muted-foreground" strokeWidth={2} />
+    </button>
+  )
+}
+
 function PageHeader({ kicker, title, children }) {
   return (
     <div>
@@ -284,10 +345,14 @@ function StatCard({ icon: Icon, label, value, sub, accent, onClick }) {
 }
 
 function Overview({ credits, exportCount, navigate, setTab }) {
+  const { profile } = useAuth()
   const usedPct = Math.min(100, Math.round(((PLAN_CREDITS - Math.min(credits, PLAN_CREDITS)) / PLAN_CREDITS) * 100))
+  // Discord display names can be long; a full one would wrap the kicker onto a
+  // second line, so greet with the first word only.
+  const firstName = profile?.name?.split(' ')[0]
   return (
     <div className="space-y-8">
-      <PageHeader kicker="Welcome back" title="Your clip HQ">
+      <PageHeader kicker={firstName ? `Welcome back, ${firstName}` : 'Welcome back'} title="Your clip HQ">
         <p className="mt-2 max-w-xl text-[15px] text-muted-foreground">
           Turn a raw Kick moment into a ready-to-post clip in under a minute. Everything runs
           in your browser — your clips never leave your machine.
@@ -711,7 +776,7 @@ function Analytics() {
 
       <p className="text-[13px] text-muted-foreground">
         These are sample numbers to show the layout. Your real views and earnings appear here
-        once clip tracking launches with Discord sign-in.
+        once clip tracking launches.
       </p>
     </div>
   )
@@ -910,8 +975,8 @@ function Billing({ credits }) {
       </div>
 
       <p className="text-[13px] text-muted-foreground">
-        Payments arrive with Discord sign-in — you'll be able to top up credits and manage your
-        plan right here.
+        Checkout is coming soon — you'll be able to top up credits and manage your plan
+        right here.
       </p>
     </div>
   )
@@ -932,6 +997,20 @@ function SettingRow({ title, desc, action }) {
 }
 
 function SettingsTab() {
+  const { profile, isConfigured, signOut } = useAuth()
+  const navigate = useNavigate()
+  const [signingOut, setSigningOut] = useState(false)
+
+  async function handleSignOut() {
+    setSigningOut(true)
+    try {
+      await signOut()
+      navigate('/', { replace: true })
+    } finally {
+      setSigningOut(false)
+    }
+  }
+
   return (
     <div className="space-y-8">
       <PageHeader kicker="Settings" title="Account" />
@@ -939,11 +1018,29 @@ function SettingsTab() {
       <div className="space-y-3">
         <SettingRow
           title="Discord sign-in"
-          desc="Connect your Discord to sync credits across devices."
+          desc={
+            profile
+              ? `Connected as ${profile.username ? `@${profile.username}` : profile.name}.`
+              : 'Connect your Discord to sync credits across devices.'
+          }
           action={
-            <div className="flex shrink-0 items-center gap-2 rounded-md border border-border bg-background px-3.5 py-2 text-[13px] text-muted-foreground">
-              <Lock className="size-3.5" /> Soon
-            </div>
+            profile ? (
+              <div className="flex shrink-0 items-center gap-2 rounded-md border border-kick/40 bg-kick/10 px-3.5 py-2 text-[13px] font-medium text-kick">
+                <Check className="size-3.5" strokeWidth={2.5} /> Connected
+              </div>
+            ) : isConfigured ? (
+              <Button
+                onClick={() => navigate('/signin?next=/dashboard')}
+                variant="outline"
+                className="h-10 shrink-0 text-sm font-medium"
+              >
+                <DiscordIcon className="size-4" /> Connect
+              </Button>
+            ) : (
+              <div className="flex shrink-0 items-center gap-2 rounded-md border border-border bg-background px-3.5 py-2 text-[13px] text-muted-foreground">
+                <Lock className="size-3.5" /> Soon
+              </div>
+            )
           }
         />
         <SettingRow
@@ -959,10 +1056,14 @@ function SettingsTab() {
           action={
             <Button
               variant="outline"
-              disabled
-              className="h-10 shrink-0 cursor-not-allowed text-sm font-medium"
+              disabled={!profile || signingOut}
+              onClick={handleSignOut}
+              className={cn(
+                'h-10 shrink-0 text-sm font-medium',
+                !profile && 'cursor-not-allowed',
+              )}
             >
-              <LogOut className="size-4" /> Sign out
+              <LogOut className="size-4" /> {signingOut ? 'Signing out…' : 'Sign out'}
             </Button>
           }
         />

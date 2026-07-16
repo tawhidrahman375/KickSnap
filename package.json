@@ -15,6 +15,7 @@
     "@fontsource-variable/geist": "^5.2.9",
     "@fontsource-variable/montserrat": "^5.2.8",
     "@fontsource/anton": "^5.2.7",
+    "@supabase/supabase-js": "^2.110.7",
     "@tailwindcss/vite": "^4.3.2",
     "@twemoji/api": "^17.0.3",
     "class-variance-authority": "^0.7.1",

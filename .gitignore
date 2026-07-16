@@ -12,6 +12,12 @@ dist
 dist-ssr
 *.local
 
+# Local secrets/config. `.env.local` is already covered by *.local, but a plain
+# `.env` is not — and it's the one people create by habit.
+.env
+.env.*
+!.env.example
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
