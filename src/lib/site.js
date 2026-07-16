@@ -5,6 +5,6 @@
  * them had drifted to a truncated code, so the navbar, editor badge and reward
  * modal all opened a dead invite. It has one home now.
  */
-export const DISCORD_URL = 'https://discord.gg/DT7HvKQ9Gw'
+export const DISCORD_URL = 'https://discord.gg/bKZJgWZWu8'
 
 export const SITE_URL = 'https://kicksnap.com'
