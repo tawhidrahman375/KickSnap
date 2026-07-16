@@ -61,7 +61,7 @@ export default function LegalPage({ doc }) {
 
   return (
     <div className="min-h-svh bg-background">
-      <header className="border-b-2 border-border">
+      <header className="border-b border-border">
         <div className="mx-auto flex h-20 max-w-3xl items-center justify-between px-6">
           <Link to="/" className="flex items-center gap-2">
             <Logo className="h-8" />

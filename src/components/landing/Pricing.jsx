@@ -87,7 +87,7 @@ export default function Pricing() {
   const [yearly, setYearly] = useState(false)
 
   return (
-    <section id="pricing" className="border-t-2 border-border bg-background py-20 sm:py-24">
+    <section id="pricing" className="border-t border-border bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
         <Reveal className="max-w-3xl">
           <Eyebrow>Pricing</Eyebrow>
@@ -193,7 +193,7 @@ export default function Pricing() {
 
         {/* Top-up packs */}
         <Reveal className="mt-8">
-          <div className="border-2 border-border bg-card/30 p-6">
+          <div className="rounded-xl border border-border bg-card/30 p-6">
             <div className="mb-4 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
               Top up your credits — one-time, no subscription
             </div>
@@ -201,7 +201,7 @@ export default function Pricing() {
               {PACKS.map((pack) => (
                 <div
                   key={pack.name}
-                  className="flex items-center justify-between border-2 border-border bg-background/40 px-5 py-4"
+                  className="flex items-center justify-between rounded-lg border border-border bg-background/40 px-5 py-4"
                 >
                   <div>
                     <div className="font-bold text-foreground">{pack.name}</div>
@@ -223,10 +223,10 @@ export default function Pricing() {
 
         {/* Comparison table */}
         <Reveal className="mt-8">
-          <div className="overflow-x-auto border-2 border-border">
+          <div className="overflow-x-auto rounded-xl border border-border">
             <table className="w-full min-w-[520px] border-collapse text-left">
               <thead>
-                <tr className="border-b-2 border-border bg-card">
+                <tr className="border-b border-border bg-card">
                   <th className="px-5 py-4 font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
                     Feature
                   </th>

@@ -22,15 +22,16 @@ export default function DiscordReward() {
   const open = state.showDiscordPrompt
   const dismiss = () => dispatch({ type: 'DISMISS_DISCORD_PROMPT' })
 
-  // Close on Escape (only while open).
+  // Close on Escape (only while open). Dispatches directly rather than calling
+  // `dismiss` so the effect doesn't re-subscribe on every render.
   useEffect(() => {
     if (!open) return
     const onKey = (e) => {
-      if (e.key === 'Escape') dismiss()
+      if (e.key === 'Escape') dispatch({ type: 'DISMISS_DISCORD_PROMPT' })
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [open])
+  }, [open, dispatch])
 
   if (!open) return null
 
