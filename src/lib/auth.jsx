@@ -1,5 +1,6 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react'
 import { supabase, isSupabaseConfigured } from './supabase'
+import { identifyUser, resetIdentity } from './analytics'
 
 const AuthContext = createContext(null)
 
@@ -72,6 +73,12 @@ export function AuthProvider({ children }) {
   }, [])
 
   const userId = session?.user?.id ?? null
+
+  // Tag analytics events to the real user as soon as a session exists, so the
+  // founder-side funnel isn't a wall of anonymous device ids.
+  useEffect(() => {
+    if (session?.user) identifyUser(session.user)
+  }, [session?.user])
 
   // Load the account row whenever the signed-in user changes. The signup trigger
   // creates the profile inside the same transaction as the auth user, so by the
@@ -160,6 +167,7 @@ export function AuthProvider({ children }) {
     await supabase.auth.signOut()
     setSession(null)
     setAccount(null)
+    resetIdentity()
   }, [])
 
   const value = useMemo(

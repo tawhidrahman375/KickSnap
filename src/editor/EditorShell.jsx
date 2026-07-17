@@ -3,6 +3,7 @@ import { useAuth } from '@/lib/auth'
 import { useEditor } from './EditorContext'
 import { PlaybackProvider } from './PlaybackContext'
 import { exportClip, ExportCanceled } from './exportClip'
+import { track } from '@/lib/analytics'
 import { locate, segDuration, segmentOffsets, timelineTime, totalDuration } from './segments'
 import TopBar from './TopBar'
 import Sidebar from './Sidebar'
@@ -286,6 +287,7 @@ export default function EditorShell({ embedded = false, onLockedExport }) {
       } catch (err) {
         console.error('[KickSnap] credit not charged for this export', err)
       }
+      track('export_completed', { format: state.format, effect: state.effect })
       dispatch({ type: 'EXPORT_DONE', result })
     } catch (err) {
       // A cancel is a deliberate user action, not a failure — drop straight back

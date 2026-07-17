@@ -31,6 +31,7 @@ import { Button } from '@/components/ui/button'
 import { DISCORD_URL } from '@/lib/site'
 import { useAuth } from '@/lib/auth'
 import { CREDIT_PACKS, PLANS } from '@/lib/pricing'
+import { track } from '@/lib/analytics'
 import { cn } from '@/lib/utils'
 
 const NAV = [
@@ -821,6 +822,7 @@ function Billing({ credits, plan }) {
   async function buy(priceId) {
     setError(null)
     setPending(priceId)
+    track('checkout_started', { price_id: priceId })
     try {
       // Leaves the site for Stripe, so `pending` stays set until navigation.
       window.location.href = await startCheckout(priceId)

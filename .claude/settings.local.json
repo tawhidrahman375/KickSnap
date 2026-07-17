@@ -59,7 +59,8 @@
       "Bash(grep -n \"const { state, dispatch\\\\|useEditor\\(\\)\" src/editor/EditorShell.jsx)",
       "mcp__42c4dc32-f7ed-4b62-a1a4-e771b5972fb7__stripe_api_read",
       "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__get_logs",
-      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__deploy_edge_function"
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__deploy_edge_function",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd \"C:\\\\Users\\\\tawhi\\\\OneDrive\\\\Desktop\\\\KickSnap\"; npm run build 2>&1 | Select-String -Pattern \"built in|error\" | Select-Object -First 5)"
     ]
   }
 }
