@@ -24,7 +24,7 @@ const SUBSCRIPTION_PRICES = new Set([
   'price_1Ttwza2eJxsLc5aFCF7QButw',
 ])
 
-const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://kicksnap.com'
+const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://kicksnap.net'
 
 const cors = {
   'Access-Control-Allow-Origin': '*',

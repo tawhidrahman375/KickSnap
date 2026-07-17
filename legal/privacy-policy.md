@@ -9,11 +9,11 @@
 
 **Last updated: 12 July 2026**
 
-This Privacy Policy explains how **KickSnap** ("KickSnap", "we", "us", "our") collects, uses, and protects your personal data when you use the KickSnap website and application at **kicksnap.com** (the "Service").
+This Privacy Policy explains how **KickSnap** ("KickSnap", "we", "us", "our") collects, uses, and protects your personal data when you use the KickSnap website and application at **kicksnap.net** (the "Service").
 
 KickSnap is operated from the **United Kingdom**, but our users are global. We act as the **data controller** for the personal data described below. We comply with the UK General Data Protection Regulation (UK GDPR), the Data Protection Act 2018, and, where they apply to you, the EU GDPR and other applicable data protection laws.
 
-If you have any questions, contact us at **privacy@kicksnap.com**.
+If you have any questions, contact us at **privacy@kicksnap.net**.
 
 ---
 
@@ -91,13 +91,13 @@ We do not sell your personal data. We share it only with:
 - **Authorities and advisers** where required by law, to enforce our Terms, or to protect our rights, safety, or property.
 - **A successor** in the event of a merger, acquisition, or sale of assets, subject to this Policy.
 
-A current list of sub-processors is available on request at **privacy@kicksnap.com**.
+A current list of sub-processors is available on request at **privacy@kicksnap.net**.
 
 ---
 
 ## 5. International data transfers
 
-We are based in the UK, and some of our providers (e.g. Stripe, PostHog, Vercel, Discord) may process data in the United States or other countries. Where personal data is transferred outside the UK/EEA, we rely on appropriate safeguards such as **UK adequacy regulations, the UK International Data Transfer Agreement (IDTA) / Addendum, or EU Standard Contractual Clauses (SCCs)**. You can request more information at **privacy@kicksnap.com**.
+We are based in the UK, and some of our providers (e.g. Stripe, PostHog, Vercel, Discord) may process data in the United States or other countries. Where personal data is transferred outside the UK/EEA, we rely on appropriate safeguards such as **UK adequacy regulations, the UK International Data Transfer Agreement (IDTA) / Addendum, or EU Standard Contractual Clauses (SCCs)**. You can request more information at **privacy@kicksnap.net**.
 
 ---
 
@@ -139,7 +139,7 @@ California residents may request to know, delete, or correct their personal info
 ### 8.3 Everyone else
 If your local law grants you data rights, we will honour them to the extent they apply. Contact us and we'll do our best to help.
 
-To exercise any right, email **privacy@kicksnap.com**. We may need to verify your identity, and we will respond within the timeframes required by law (generally one month under UK GDPR).
+To exercise any right, email **privacy@kicksnap.net**. We may need to verify your identity, and we will respond within the timeframes required by law (generally one month under UK GDPR).
 
 ---
 
@@ -165,6 +165,6 @@ We may update this Policy from time to time. When we make material changes, we w
 
 **KickSnap**
 Registered address available on request by email.
-Email: **privacy@kicksnap.com**
+Email: **privacy@kicksnap.net**
 
 If you are in the UK/EEA and are unhappy with how we handle your data, you have the right to complain to the ICO ([ico.org.uk](https://ico.org.uk)) or your local data protection authority.

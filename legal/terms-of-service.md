@@ -9,7 +9,7 @@
 
 **Last updated: 12 July 2026**
 
-These Terms of Service ("Terms") are a legal agreement between you and **KickSnap** ("KickSnap", "we", "us", "our") governing your use of the KickSnap website and application at **kicksnap.com** (the "Service"). By creating an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.
+These Terms of Service ("Terms") are a legal agreement between you and **KickSnap** ("KickSnap", "we", "us", "our") governing your use of the KickSnap website and application at **kicksnap.net** (the "Service"). By creating an account or using the Service, you agree to these Terms. If you do not agree, do not use the Service.
 
 Please also read our [Privacy Policy](./privacy-policy.md) and [Cookie Policy](./cookie-policy.md), which are incorporated into these Terms.
 
@@ -79,7 +79,7 @@ Credits and the ability to Export are **digital content/services supplied immedi
 
 **Used Credits are non-refundable.** Once a Credit has been consumed on an Export, it cannot be refunded, because the corresponding digital service has been fully performed with your consent.
 
-**Cooling-off period (UK/EU consumers).** If you are a consumer in the UK or EU, you normally have **14 days** to cancel a purchase of digital content or services. However, by starting to use your Credits during that period (which you consent to under Section 8), you lose the right to cancel **in respect of the Credits you have used**. For **unused** Credits, you may request a cancellation and refund within the 14-day period by emailing **support@kicksnap.com**; we may deduct an amount reflecting any service already provided.
+**Cooling-off period (UK/EU consumers).** If you are a consumer in the UK or EU, you normally have **14 days** to cancel a purchase of digital content or services. However, by starting to use your Credits during that period (which you consent to under Section 8), you lose the right to cancel **in respect of the Credits you have used**. For **unused** Credits, you may request a cancellation and refund within the 14-day period by emailing **support@kicksnap.net**; we may deduct an amount reflecting any service already provided.
 
 **Subscriptions.** You may cancel a Subscription at any time; it will remain active until the end of the current billing period, and it will not renew thereafter. We do not provide pro-rata refunds for partial billing periods except where required by law.
 
@@ -149,7 +149,7 @@ We may update these Terms from time to time. If we make material changes, we wil
 
 ## 18. Governing law and disputes
 
-These Terms are governed by the laws of **England and Wales**, and the courts of England and Wales have jurisdiction. **If you are a consumer resident elsewhere, you may benefit from mandatory protections and the courts of your country of residence**, and nothing here deprives you of those rights. We encourage you to contact us first at **support@kicksnap.com** so we can try to resolve any dispute informally.
+These Terms are governed by the laws of **England and Wales**, and the courts of England and Wales have jurisdiction. **If you are a consumer resident elsewhere, you may benefit from mandatory protections and the courts of your country of residence**, and nothing here deprives you of those rights. We encourage you to contact us first at **support@kicksnap.net** so we can try to resolve any dispute informally.
 
 ---
 
@@ -167,4 +167,4 @@ These Terms are governed by the laws of **England and Wales**, and the courts of
 
 **KickSnap**
 Registered address available on request by email.
-Email: **support@kicksnap.com**
+Email: **support@kicksnap.net**

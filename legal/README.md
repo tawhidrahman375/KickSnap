@@ -30,9 +30,9 @@ Three drafts for KickSnap, a credit-based, client-side video editing SaaS:
 |---|---|---|
 | `[LEGAL ENTITY / TRADING NAME]` | Your registered company or sole-trader trading name | See §4 below re: the minor-founder issue |
 | `[Business address]` | A real contact address | **Legally required** for UK consumer contracts |
-| `[privacy@kicksnap.com]` | Your privacy contact email | |
-| `[support@kicksnap.com]` | Your support/billing email | |
-| `kicksnap.com` | Final production domain | Update if different |
+| `[privacy@kicksnap.net]` | Your privacy contact email | |
+| `[support@kicksnap.net]` | Your support/billing email | |
+| `kicksnap.net` | Final production domain | Update if different |
 | `[Vercel]`, `[Supabase]` | Actual hosting / DB / auth providers | Must match reality for GDPR sub-processor list |
 | `[Stripe, Inc. / Stripe Payments Europe]` | The correct Stripe entity for your account | |
 | `[16]` / `[18]` | Final minimum ages | **Flagged for review — see §4** |

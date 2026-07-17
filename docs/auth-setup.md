@@ -42,11 +42,11 @@ The KickSnap app is already created: Client ID `1527392642604728400`.
 1. Supabase dashboard → **Authentication** → **Sign In / Providers** → **Discord**.
 2. Toggle **Enable**, paste the Client ID and Client Secret from step 2, **Save**.
 3. **Authentication** → **URL Configuration**:
-   - **Site URL**: `https://kicksnap.com`
+   - **Site URL**: `https://kicksnap.net`
    - **Redirect URLs** — add all three, one per line:
      ```
      http://localhost:5173/**
-     https://kicksnap.com/**
+     https://kicksnap.net/**
      https://*.vercel.app/**
      ```
      The localhost entry is what lets you test sign-in in dev; the wildcard one

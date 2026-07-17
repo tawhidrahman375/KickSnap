@@ -7,4 +7,4 @@
  */
 export const DISCORD_URL = 'https://discord.gg/bKZJgWZWu8'
 
-export const SITE_URL = 'https://kicksnap.com'
+export const SITE_URL = 'https://kicksnap.net'

@@ -10,7 +10,7 @@
 
 **Last updated: 12 July 2026**
 
-This Cookie Policy explains how **KickSnap** ("KickSnap", "we", "us", "our") uses cookies and similar technologies (such as browser **local storage** and **session storage**) on the KickSnap website and application at **kicksnap.com** (the "Service").
+This Cookie Policy explains how **KickSnap** ("KickSnap", "we", "us", "our") uses cookies and similar technologies (such as browser **local storage** and **session storage**) on the KickSnap website and application at **kicksnap.net** (the "Service").
 
 It should be read alongside our [Privacy Policy](./privacy-policy.md), which explains how we handle personal data more generally, and our [Terms of Service](./terms-of-service.md).
 
@@ -102,6 +102,6 @@ If you have questions about our use of cookies:
 
 **KickSnap**
 Registered address available on request by email.
-Email: **privacy@kicksnap.com**
+Email: **privacy@kicksnap.net**
 
 You can also contact the UK Information Commissioner's Office (ICO) at [ico.org.uk](https://ico.org.uk) if you have concerns about how we use cookies or personal data.
