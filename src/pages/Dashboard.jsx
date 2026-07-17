@@ -44,6 +44,10 @@ const NAV = [
 // Free-plan monthly credit grant — used to show usage against the allowance.
 const PLAN_CREDITS = 10
 
+// Monthly credit allowance per plan, for the Overview usage bar. Agency is
+// unlimited, so it has no allowance to show progress against.
+const PLAN_ALLOWANCE = { Free: 10, Pro: 150, Agency: null }
+
 // Analytics needs TikTok API access to report real per-clip performance, and we
 // don't have it yet. The dashboard below is fully built and runs on sample data,
 // so it stays behind this flag rather than being deleted — showing invented
@@ -346,7 +350,10 @@ function StatCard({ icon: Icon, label, value, sub, accent, onClick }) {
 
 function Overview({ credits, exportCount, plan, navigate, setTab }) {
   const { profile } = useAuth()
-  const usedPct = Math.min(100, Math.round(((PLAN_CREDITS - Math.min(credits, PLAN_CREDITS)) / PLAN_CREDITS) * 100))
+  const allowance = PLAN_ALLOWANCE[plan] ?? PLAN_CREDITS
+  const usedPct = allowance == null
+    ? 0
+    : Math.min(100, Math.round(((allowance - Math.min(credits, allowance)) / allowance) * 100))
   // Discord display names can be long; a full one would wrap the kicker onto a
   // second line, so greet with the first word only.
   const firstName = profile?.name?.split(' ')[0]
@@ -376,11 +383,12 @@ function Overview({ credits, exportCount, plan, navigate, setTab }) {
               <div className="h-1.5 w-full overflow-hidden rounded-full bg-foreground/10">
                 <div
                   className="h-full rounded-full bg-kick transition-all"
-                  style={{ width: `${100 - usedPct}%` }}
+                  style={{ width: `${allowance == null ? 100 : 100 - usedPct}%` }}
                 />
               </div>
               <div className="mt-2 text-xs text-muted-foreground">
-                Free plan · 1 credit per export · resets monthly
+                {plan} plan · 1 credit per export
+                {allowance != null && ' · resets monthly'}
               </div>
             </div>
           </div>

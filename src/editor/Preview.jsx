@@ -43,6 +43,22 @@ export default function Preview({ videoRef, embedded = false }) {
 
   const src = clip?.url
   const isSplit = format === 'split'
+
+  // Revoke the previous clip's object URL when it's replaced or the editor
+  // unmounts — nothing else in the app ever calls revokeObjectURL for it, so
+  // without this every uploaded clip pins its full file in memory forever.
+  useEffect(() => {
+    if (!src) return
+    return () => URL.revokeObjectURL(src)
+  }, [src])
+
+  // Same for the split-layout top image.
+  useEffect(() => {
+    const url = split.topImageUrl
+    if (!url) return
+    return () => URL.revokeObjectURL(url)
+  }, [split.topImageUrl])
+
   const canTransform = clip && !isSplit // the full-frame transform box
 
   const clampZoom = (z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z))

@@ -1,3 +1,4 @@
+import { Navigate } from 'react-router-dom'
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
 import Problem from '@/components/landing/Problem'
@@ -11,8 +12,15 @@ import Pricing from '@/components/landing/Pricing'
 import FAQ from '@/components/landing/FAQ'
 import FinalCTA from '@/components/landing/FinalCTA'
 import Footer from '@/components/landing/Footer'
+import { useAuth } from '@/lib/auth'
 
 export default function Landing() {
+  const { user, loading } = useAuth()
+
+  // A signed-in visitor landing on "/" (bookmark, back button, re-login) wants
+  // their dashboard, not the marketing page — send them straight there.
+  if (!loading && user) return <Navigate to="/dashboard" replace />
+
   return (
     <div className="min-h-screen bg-background">
       <Navbar />
