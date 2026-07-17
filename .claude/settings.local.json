@@ -42,7 +42,24 @@
       "Bash(git add *)",
       "Bash(npx oxlint *)",
       "Bash(git commit -m ' *)",
-      "Bash(cd \"C:/Users/tawhi/OneDrive/Desktop/KickSnap\" && echo \"=== repo root \\(top-level files\\) ===\" && ls -la --time-style=+%Y-%m-%d_%H:%M | grep -v '^d' && echo \"\" && echo \"=== public/ top-level ===\" && ls -la public --time-style=+%Y-%m-%d_%H:%M 2>/dev/null | grep -v '^d' && echo \"\" && echo \"=== any other video ext \\(mkv/avi/m4v/mts\\) ===\" && find . -type f \\\\\\( -iname \"*.mkv\" -o -iname \"*.avi\" -o -iname \"*.m4v\" -o -iname \"*.mts\" -o -iname \"*.mp4\" -o -iname \"*.webm\" -o -iname \"*.mov\" \\\\\\) -not -path \"./node_modules/*\" -not -path \"./.git/*\" 2>/dev/null)"
+      "Bash(cd \"C:/Users/tawhi/OneDrive/Desktop/KickSnap\" && echo \"=== repo root \\(top-level files\\) ===\" && ls -la --time-style=+%Y-%m-%d_%H:%M | grep -v '^d' && echo \"\" && echo \"=== public/ top-level ===\" && ls -la public --time-style=+%Y-%m-%d_%H:%M 2>/dev/null | grep -v '^d' && echo \"\" && echo \"=== any other video ext \\(mkv/avi/m4v/mts\\) ===\" && find . -type f \\\\\\( -iname \"*.mkv\" -o -iname \"*.avi\" -o -iname \"*.m4v\" -o -iname \"*.mts\" -o -iname \"*.mp4\" -o -iname \"*.webm\" -o -iname \"*.mov\" \\\\\\) -not -path \"./node_modules/*\" -not -path \"./.git/*\" 2>/dev/null)",
+      "Bash(awk '$2>0 {print $0}')",
+      "Bash(git push *)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); npm install @supabase/supabase-js 2>&1 | Select-Object -Last 8)",
+      "Bash(git check-ignore *)",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__list_projects",
+      "mcp__claude-in-chrome__tabs_context_mcp",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__execute_sql",
+      "Bash(node -e ' *)",
+      "PowerShell($env:Path = [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"Machine\"\\) + \";\" + [System.Environment]::GetEnvironmentVariable\\(\"Path\",\"User\"\\); cd \"C:\\\\Users\\\\tawhi\\\\OneDrive\\\\Desktop\\\\KickSnap\"; npm run lint 2>&1 | Select-String -Pattern \"auth.jsx|error|Found\" | Select-Object -First 5; Write-Output \"=====BUILD=====\"; npm run build 2>&1 | Select-String -Pattern \"built in|error\" | Select-Object -First 3)",
+      "Bash(git checkout *)",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__apply_migration",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__get_advisors",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__list_migrations",
+      "Bash(grep -n \"const { state, dispatch\\\\|useEditor\\(\\)\" src/editor/EditorShell.jsx)",
+      "mcp__42c4dc32-f7ed-4b62-a1a4-e771b5972fb7__stripe_api_read",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__get_logs",
+      "mcp__9eb43af1-d39e-43de-92c7-a7d41083314b__deploy_edge_function"
     ]
   }
 }
