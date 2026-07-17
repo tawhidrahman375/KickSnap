@@ -16,12 +16,12 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.10'
 // treats as unlimited. Granting it a big number instead would stack 9999 more on
 // every renewal and still, absurdly, be finite.
 const CREDITS_FOR_PRICE: Record<string, { credits: number; plan: string | null }> = {
-  price_1Ttw762eJxsLc5aF1TxK0E8n: { credits: 30, plan: null },    // Starter  $5
-  price_1Ttw7Y2eJxsLc5aFCoGY6WZl: { credits: 100, plan: null },   // Pro Pack $10
-  price_1Ttw8Z2eJxsLc5aFQybM3Ox7: { credits: 150, plan: 'pro' },  // Pro      $15/mo
-  price_1TtwDl2eJxsLc5aFtth7961L: { credits: 150, plan: 'pro' },  // Pro      $150/yr
-  price_1Ttw9D2eJxsLc5aF5JxCwsk9: { credits: 0, plan: 'agency' }, // Agency   $150/mo  — unlimited via plan
-  price_1TtwDI2eJxsLc5aFa5AhTW27: { credits: 0, plan: 'agency' }, // Agency   $1500/yr — unlimited via plan
+  price_1Ttwxr2eJxsLc5aFnqO2y46u: { credits: 30, plan: null },    // Starter  $5
+  price_1TtwyB2eJxsLc5aFFF8dXeIv: { credits: 100, plan: null },   // Pro Pack $10
+  price_1TtwyU2eJxsLc5aFpw1kWKaI: { credits: 150, plan: 'pro' },  // Pro      $15/mo
+  price_1Ttwz02eJxsLc5aFsdu3OGoR: { credits: 150, plan: 'pro' },  // Pro      $150/yr
+  price_1TtwzH2eJxsLc5aFXmX7Vfj1: { credits: 0, plan: 'agency' }, // Agency   $150/mo  — unlimited via plan
+  price_1Ttwza2eJxsLc5aFCF7QButw: { credits: 0, plan: 'agency' }, // Agency   $1500/yr — unlimited via plan
 }
 
 const stripe = new Stripe(Deno.env.get('STRIPE_SECRET_KEY')!, {
