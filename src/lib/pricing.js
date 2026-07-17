@@ -20,14 +20,14 @@ export const CREDIT_PACKS = [
   {
     id: 'starter',
     name: 'Starter',
-    priceId: 'price_1Ttw762eJxsLc5aF1TxK0E8n',
+    priceId: 'price_1TuCHkGY8sI4AeivEZFpRTSJ',
     price: 5,
     credits: 30,
   },
   {
     id: 'pro_pack',
     name: 'Pro Pack',
-    priceId: 'price_1Ttw7Y2eJxsLc5aFCoGY6WZl',
+    priceId: 'price_1TuCI2GY8sI4Aeiv9e7Yf7Ic',
     price: 10,
     credits: 100,
   },
@@ -37,16 +37,16 @@ export const PLANS = [
   {
     id: 'pro',
     name: 'Pro',
-    monthly: { priceId: 'price_1Ttw8Z2eJxsLc5aFQybM3Ox7', price: 15 },
+    monthly: { priceId: 'price_1TuCIbGY8sI4AeivAPLyIkVq', price: 15 },
     // Yearly is the monthly rate x10, not x12 — that's where "2 months free"
     // comes from. $150/yr reads as $12.50/mo on the billing toggle.
-    yearly: { priceId: 'price_1TtwDl2eJxsLc5aFtth7961L', price: 150 },
+    yearly: { priceId: 'price_1TuCIwGY8sI4Aeiv5Rr07xs5', price: 150 },
   },
   {
     id: 'agency',
     name: 'Agency',
-    monthly: { priceId: 'price_1Ttw9D2eJxsLc5aF5JxCwsk9', price: 150 },
-    yearly: { priceId: 'price_1TtwDI2eJxsLc5aFa5AhTW27', price: 1500 },
+    monthly: { priceId: 'price_1TuCJDGY8sI4AeivEfG6J7cF', price: 150 },
+    yearly: { priceId: 'price_1TuCJaGY8sI4AeivJMnHkSlf', price: 1500 },
   },
 ]
 
