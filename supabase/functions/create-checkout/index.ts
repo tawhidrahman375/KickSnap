@@ -9,19 +9,19 @@ import { createClient } from 'https://esm.sh/@supabase/supabase-js@2.47.10'
 // on this list the request dies here. Without it, anyone could POST the id of a
 // $0 price (or one from another Stripe account) and take the goods for nothing.
 const ALLOWED_PRICES = new Set([
-  'price_1Ttwxr2eJxsLc5aFnqO2y46u', // Starter    $5   one-off
-  'price_1TtwyB2eJxsLc5aFFF8dXeIv', // Pro Pack   $10  one-off
-  'price_1TtwyU2eJxsLc5aFpw1kWKaI', // Pro        $15/mo
-  'price_1Ttwz02eJxsLc5aFsdu3OGoR', // Pro        $150/yr
-  'price_1TtwzH2eJxsLc5aFXmX7Vfj1', // Agency     $150/mo
-  'price_1Ttwza2eJxsLc5aFCF7QButw', // Agency     $1500/yr
+  'price_1Ttw762eJxsLc5aF1TxK0E8n', // Starter    $5   one-off
+  'price_1Ttw7Y2eJxsLc5aFCoGY6WZl', // Pro Pack   $10  one-off
+  'price_1Ttw8Z2eJxsLc5aFQybM3Ox7', // Pro        $15/mo
+  'price_1TtwDl2eJxsLc5aFtth7961L', // Pro        $150/yr
+  'price_1Ttw9D2eJxsLc5aF5JxCwsk9', // Agency     $150/mo
+  'price_1TtwDI2eJxsLc5aFa5AhTW27', // Agency     $1500/yr
 ])
 
 const SUBSCRIPTION_PRICES = new Set([
-  'price_1TtwyU2eJxsLc5aFpw1kWKaI',
-  'price_1Ttwz02eJxsLc5aFsdu3OGoR',
-  'price_1TtwzH2eJxsLc5aFXmX7Vfj1',
-  'price_1Ttwza2eJxsLc5aFCF7QButw',
+  'price_1Ttw8Z2eJxsLc5aFQybM3Ox7',
+  'price_1TtwDl2eJxsLc5aFtth7961L',
+  'price_1Ttw9D2eJxsLc5aF5JxCwsk9',
+  'price_1TtwDI2eJxsLc5aFa5AhTW27',
 ])
 
 const SITE_URL = Deno.env.get('SITE_URL') ?? 'https://kicksnap.net'
