@@ -1102,6 +1102,7 @@ function SettingsTab() {
 
       <Link
         to="/"
+        state={{ stayOnLanding: true }}
         className="inline-flex items-center gap-1 text-[13px] font-medium text-muted-foreground transition-colors hover:text-foreground"
       >
         Back to site <ChevronRight className="size-3.5" />

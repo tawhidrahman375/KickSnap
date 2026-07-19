@@ -1,4 +1,4 @@
-import { Navigate } from 'react-router-dom'
+import { Navigate, useLocation } from 'react-router-dom'
 import Navbar from '@/components/landing/Navbar'
 import Hero from '@/components/landing/Hero'
 import Problem from '@/components/landing/Problem'
@@ -16,10 +16,14 @@ import { useAuth } from '@/lib/auth'
 
 export default function Landing() {
   const { user, loading } = useAuth()
+  const location = useLocation()
 
   // A signed-in visitor landing on "/" (bookmark, back button, re-login) wants
-  // their dashboard, not the marketing page — send them straight there.
-  if (!loading && user) return <Navigate to="/dashboard" replace />
+  // their dashboard, not the marketing page — send them straight there, unless
+  // they explicitly navigated here from the dashboard (e.g. "Back to site").
+  if (!loading && user && !location.state?.stayOnLanding) {
+    return <Navigate to="/dashboard" replace />
+  }
 
   return (
     <div className="min-h-screen bg-background">
