@@ -1,7 +1,8 @@
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { useNavigate } from 'react-router-dom'
 import { Check, Play } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 
 const container = {
   hidden: {},
@@ -28,20 +29,12 @@ const TRUST = [
 
 export default function Hero() {
   const navigate = useNavigate()
+  const reduce = useReducedMotion()
   const scrollToDemo = () => {
     document.getElementById('demo')?.scrollIntoView({ behavior: 'smooth', block: 'start' })
   }
   return (
     <section className="relative flex min-h-screen items-center overflow-hidden">
-      {/* Subtle green glow behind the headline — a hint of brand, not a wash. */}
-      <div
-        aria-hidden
-        className="pointer-events-none absolute inset-0 -z-10"
-        style={{
-          background:
-            'radial-gradient(60% 50% at 50% 0%, rgba(83,252,24,0.16) 0%, rgba(83,252,24,0.04) 38%, rgba(0,0,0,0) 66%)',
-        }}
-      />
       {/* Faint grid texture */}
       <div
         aria-hidden
@@ -55,7 +48,7 @@ export default function Hero() {
 
       <motion.div
         variants={container}
-        initial="hidden"
+        initial={reduce ? 'show' : 'hidden'}
         animate="show"
         className="mx-auto w-full max-w-6xl px-6"
       >
@@ -85,13 +78,11 @@ export default function Hero() {
         </motion.p>
 
         <motion.div variants={fadeUp} className="mt-10 flex flex-col gap-3 sm:flex-row">
-          <Button
-            size="lg"
+          <InteractiveHoverButton
+            text="Get started free"
             onClick={() => navigate('/editor')}
-            className="h-14 px-8 text-base font-bold tracking-wide text-black uppercase"
-          >
-            Get started free
-          </Button>
+            className="h-14 w-auto rounded-none border-2 px-8 py-0 text-base font-bold tracking-wide uppercase"
+          />
           <Button
             variant="outline"
             size="lg"

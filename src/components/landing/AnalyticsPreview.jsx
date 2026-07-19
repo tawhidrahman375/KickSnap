@@ -1,4 +1,4 @@
-import { motion } from 'motion/react'
+import { motion, useReducedMotion } from 'motion/react'
 import { TrendingUp, ArrowUpRight } from 'lucide-react'
 import Reveal from './Reveal'
 import CountUp from './CountUp'
@@ -22,6 +22,7 @@ const CHART_PATH =
   'M0,110 C40,100 70,95 100,80 C140,60 170,72 210,50 C250,30 290,40 330,22 C360,10 380,14 400,6'
 
 export default function AnalyticsPreview() {
+  const reduce = useReducedMotion()
   return (
     <section className="border-t border-border py-20 sm:py-24">
       <div className="mx-auto max-w-6xl px-6">
@@ -36,7 +37,7 @@ export default function AnalyticsPreview() {
 
         <div className="mt-14 grid items-center gap-10 lg:grid-cols-[1.4fr_1fr]">
           {/* Dashboard mockup */}
-          <Reveal className="rounded-xl border border-border bg-card p-6 shadow-2xl shadow-black/40">
+          <Reveal className="rounded-xl border-2 border-border bg-card p-6">
             <div className="mb-6 flex items-center justify-between">
               <div>
                 <div className="font-mono text-xs font-bold uppercase tracking-widest text-muted-foreground">
@@ -53,7 +54,12 @@ export default function AnalyticsPreview() {
 
             {/* Chart */}
             <div className="relative h-40 w-full overflow-hidden rounded-lg border border-border bg-background/50 p-3">
-              <svg viewBox="0 0 400 120" className="h-full w-full" preserveAspectRatio="none">
+              <svg
+                viewBox="0 0 400 120"
+                className="h-full w-full"
+                preserveAspectRatio="none"
+                aria-hidden="true"
+              >
                 <defs>
                   <linearGradient id="chartFill" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="0%" stopColor="#53fc18" stopOpacity="0.25" />
@@ -63,10 +69,10 @@ export default function AnalyticsPreview() {
                 <motion.path
                   d={`${CHART_PATH} L400,120 L0,120 Z`}
                   fill="url(#chartFill)"
-                  initial={{ opacity: 0 }}
+                  initial={reduce ? { opacity: 1 } : { opacity: 0 }}
                   whileInView={{ opacity: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 1, delay: 0.6 }}
+                  transition={{ duration: reduce ? 0 : 1, delay: reduce ? 0 : 0.6 }}
                 />
                 <motion.path
                   d={CHART_PATH}
@@ -74,10 +80,10 @@ export default function AnalyticsPreview() {
                   stroke="#53fc18"
                   strokeWidth="2.5"
                   strokeLinecap="round"
-                  initial={{ pathLength: 0 }}
+                  initial={reduce ? { pathLength: 1 } : { pathLength: 0 }}
                   whileInView={{ pathLength: 1 }}
                   viewport={{ once: true }}
-                  transition={{ duration: 1.4, ease: 'easeInOut' }}
+                  transition={{ duration: reduce ? 0 : 1.4, ease: 'easeInOut' }}
                 />
               </svg>
             </div>

@@ -23,7 +23,8 @@ export default function RequireAuth({ children }) {
   }
 
   if (!session) {
-    return <Navigate to={`/signin?next=${encodeURIComponent(location.pathname)}`} replace />
+    const next = `${location.pathname}${location.search}`
+    return <Navigate to={`/signin?next=${encodeURIComponent(next)}`} replace />
   }
 
   return children

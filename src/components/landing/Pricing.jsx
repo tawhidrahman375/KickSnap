@@ -1,6 +1,7 @@
 import { useState } from 'react'
+import { useNavigate } from 'react-router-dom'
 import { Check, X } from 'lucide-react'
-import { Button } from '@/components/ui/button'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { cn } from '@/lib/utils'
 import Reveal from './Reveal'
 import Eyebrow from './Eyebrow'
@@ -85,6 +86,7 @@ function Cell({ value }) {
 
 export default function Pricing() {
   const [yearly, setYearly] = useState(false)
+  const navigate = useNavigate()
 
   return (
     <section id="pricing" className="border-t border-border bg-background py-20 sm:py-24">
@@ -168,15 +170,11 @@ export default function Pricing() {
                 </div>
                 <p className="mt-3 text-sm text-muted-foreground">{tier.credits}</p>
 
-                <Button
-                  className={cn(
-                    'mt-6 h-12 font-bold uppercase tracking-wide',
-                    tier.highlight ? 'bg-kick text-black hover:bg-kick-hover' : '',
-                  )}
-                  variant={tier.highlight ? 'default' : 'outline'}
-                >
-                  {tier.cta}
-                </Button>
+                <InteractiveHoverButton
+                  text={tier.cta}
+                  onClick={() => navigate(tier.monthly === 0 ? '/editor' : '/dashboard?tab=billing')}
+                  className="mt-6 h-12 w-full rounded-none border-2 py-0 font-bold uppercase tracking-wide"
+                />
 
                 <ul className="mt-8 space-y-3">
                   {tier.features.map((f) => (
@@ -211,9 +209,11 @@ export default function Pricing() {
                     <span className="font-display text-2xl leading-none text-foreground">
                       ${pack.price}
                     </span>
-                    <Button variant="outline" size="sm" className="font-bold uppercase">
-                      Buy
-                    </Button>
+                    <InteractiveHoverButton
+                      text="Buy"
+                      onClick={() => navigate('/dashboard?tab=billing')}
+                      className="h-11 w-24 rounded-none border-2 py-0 text-xs font-bold uppercase"
+                    />
                   </div>
                 </div>
               ))}

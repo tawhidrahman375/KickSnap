@@ -1,9 +1,12 @@
 import { useEffect, useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
+import { Menu, X } from 'lucide-react'
 import { Button } from '@/components/ui/button'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
 import { DISCORD_URL } from '@/lib/site'
+import { useAuth } from '@/lib/auth'
 import { cn } from '@/lib/utils'
 
 const NAV_LINKS = [
@@ -14,7 +17,9 @@ const NAV_LINKS = [
 
 export default function Navbar() {
   const [scrolled, setScrolled] = useState(false)
+  const [menuOpen, setMenuOpen] = useState(false)
   const navigate = useNavigate()
+  const { user } = useAuth()
 
   useEffect(() => {
     const onScroll = () => setScrolled(window.scrollY > 8)
@@ -22,6 +27,16 @@ export default function Navbar() {
     window.addEventListener('scroll', onScroll, { passive: true })
     return () => window.removeEventListener('scroll', onScroll)
   }, [])
+
+  // Close the mobile menu on route change / navigation so it never lingers
+  // open over the next page.
+  useEffect(() => {
+    if (!menuOpen) return
+    document.body.style.overflow = 'hidden'
+    return () => {
+      document.body.style.overflow = ''
+    }
+  }, [menuOpen])
 
   return (
     <header
@@ -53,6 +68,7 @@ export default function Navbar() {
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-kick transition-colors hover:text-kick-hover"
             title="Join Discord"
+            aria-label="Join Discord"
           >
             <DiscordIcon className="size-5" />
           </a>
@@ -65,17 +81,68 @@ export default function Navbar() {
             onClick={() => navigate('/dashboard')}
             className="hidden h-11 px-5 text-sm font-bold uppercase tracking-wide sm:inline-flex"
           >
-            Sign In
+            {user ? 'Dashboard' : 'Sign In'}
           </Button>
-          <Button
-            size="lg"
+          <InteractiveHoverButton
+            text={user ? 'Open Editor' : 'Get Started'}
             onClick={() => navigate('/editor')}
-            className="h-11 bg-kick px-6 text-sm font-bold uppercase tracking-wide text-black hover:bg-kick-hover"
+            className="h-11 w-auto rounded-none border-2 px-6 py-0 text-sm font-bold uppercase tracking-wide"
+          />
+          <button
+            type="button"
+            onClick={() => setMenuOpen((v) => !v)}
+            aria-expanded={menuOpen}
+            aria-controls="mobile-nav-menu"
+            aria-label={menuOpen ? 'Close menu' : 'Open menu'}
+            className="flex size-11 shrink-0 items-center justify-center border-2 border-border text-foreground md:hidden"
           >
-            Get Started
-          </Button>
+            {menuOpen ? <X className="size-5" strokeWidth={2.25} /> : <Menu className="size-5" strokeWidth={2.25} />}
+          </button>
         </div>
       </nav>
+
+      {/* Mobile menu — the only way to reach Sign In / Discord / in-page nav
+          below md, since the desktop nav row and Sign In button are hidden
+          there. */}
+      {menuOpen && (
+        <div
+          id="mobile-nav-menu"
+          className="border-t border-border bg-background px-6 py-4 md:hidden"
+        >
+          <div className="flex flex-col gap-1">
+            {NAV_LINKS.map((link) => (
+              <a
+                key={link.href}
+                href={link.href}
+                onClick={() => setMenuOpen(false)}
+                className="flex h-11 items-center font-mono text-sm font-bold uppercase tracking-widest text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {link.label}
+              </a>
+            ))}
+            <a
+              href={DISCORD_URL}
+              target="_blank"
+              rel="noopener noreferrer"
+              aria-label="Join Discord"
+              onClick={() => setMenuOpen(false)}
+              className="flex h-11 items-center gap-2 font-mono text-sm font-bold uppercase tracking-widest text-kick transition-colors hover:text-kick-hover"
+            >
+              <DiscordIcon className="size-5" /> Join Discord
+            </a>
+            <Button
+              variant="outline"
+              onClick={() => {
+                setMenuOpen(false)
+                navigate('/dashboard')
+              }}
+              className="mt-2 h-11 justify-start px-3 text-sm font-bold uppercase tracking-wide"
+            >
+              {user ? 'Dashboard' : 'Sign In'}
+            </Button>
+          </div>
+        </div>
+      )}
     </header>
   )
 }

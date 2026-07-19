@@ -1,5 +1,5 @@
-import { useState } from 'react'
-import { Link, useNavigate } from 'react-router-dom'
+import { useEffect, useState } from 'react'
+import { Link, useNavigate, useSearchParams } from 'react-router-dom'
 import { motion } from 'motion/react'
 import {
   LayoutDashboard,
@@ -24,10 +24,12 @@ import {
   Clapperboard,
   ChevronRight,
   User,
+  CheckCircle2,
 } from 'lucide-react'
 import Logo from '@/components/Logo'
 import DiscordIcon from '@/components/icons/DiscordIcon'
 import { Button } from '@/components/ui/button'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 import { DISCORD_URL } from '@/lib/site'
 import { useAuth } from '@/lib/auth'
 import { CREDIT_PACKS, PLANS } from '@/lib/pricing'
@@ -58,9 +60,10 @@ const ANALYTICS_ENABLED = false
 const PLAN_LABELS = { free: 'Free', pro: 'Pro', agency: 'Agency' }
 
 export default function Dashboard() {
-  const [tab, setTab] = useState('overview')
+  const [searchParams, setSearchParams] = useSearchParams()
+  const [tab, setTab] = useState(() => (searchParams.get('tab') === 'billing' ? 'billing' : 'overview'))
   const navigate = useNavigate()
-  const { account } = useAuth()
+  const { account, refreshAccount } = useAuth()
 
   // `account` is null while the profile row loads, and in guest mode (no
   // Supabase configured, where RequireAuth lets everyone through). Fall back to
@@ -68,6 +71,23 @@ export default function Dashboard() {
   const credits = account?.credits ?? PLAN_CREDITS
   const exportCount = account?.exportsCount ?? 0
   const plan = PLAN_LABELS[account?.plan] ?? 'Free'
+
+  // Captured once on mount — the Stripe redirect (create-checkout's
+  // success_url/cancel_url) lands here as `?checkout=success|cancelled`.
+  // Refresh credits on success (the webhook may have already landed by the
+  // time we're back) and strip the param so a refresh doesn't re-show it.
+  const [checkoutStatus] = useState(() => searchParams.get('checkout'))
+  const [showCheckoutBanner, setShowCheckoutBanner] = useState(true)
+  useEffect(() => {
+    if (!checkoutStatus) return
+    if (checkoutStatus === 'success') refreshAccount()
+    const next = new URLSearchParams(searchParams)
+    next.delete('checkout')
+    setSearchParams(next, { replace: true })
+    // Runs once on mount to consume the redirect — checkoutStatus is fixed by
+    // its lazy initializer above, so it can't drift out of sync with this.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   return (
     <div className="flex min-h-svh bg-background text-foreground">
@@ -161,12 +181,43 @@ export default function Dashboard() {
             </div>
             <Button
               onClick={() => navigate('/editor')}
-              className="hidden h-9 px-4 text-sm font-semibold sm:inline-flex"
+              className="hidden h-11 px-4 text-sm font-semibold sm:inline-flex"
             >
               <Plus className="size-4" strokeWidth={2.5} /> New clip
             </Button>
           </div>
         </header>
+
+        {/* Stripe checkout return feedback — success/cancelled banner */}
+        {checkoutStatus && showCheckoutBanner && (
+          <div
+            role="status"
+            className={cn(
+              'flex items-center justify-between gap-3 border-b px-6 py-3 text-sm font-medium sm:px-8',
+              checkoutStatus === 'success'
+                ? 'border-kick/30 bg-kick/10 text-kick'
+                : 'border-border bg-card text-muted-foreground',
+            )}
+          >
+            <span className="flex items-center gap-2">
+              {checkoutStatus === 'success' ? (
+                <>
+                  <CheckCircle2 className="size-4 shrink-0" strokeWidth={2.25} />
+                  Payment successful — your credits have been added.
+                </>
+              ) : (
+                'Checkout cancelled — you were not charged.'
+              )}
+            </span>
+            <button
+              onClick={() => setShowCheckoutBanner(false)}
+              aria-label="Dismiss"
+              className="shrink-0 opacity-70 transition-opacity hover:opacity-100"
+            >
+              <X className="size-4" strokeWidth={2.25} />
+            </button>
+          </div>
+        )}
 
         {/* Mobile tab rail */}
         <div className="flex gap-1 overflow-x-auto border-b border-border px-4 py-2 md:hidden">
@@ -439,7 +490,7 @@ function Overview({ credits, exportCount, plan, navigate, setTab }) {
             <div className="text-[13px] text-muted-foreground">Join the KickSnap Discord.</div>
           </div>
           <a href={DISCORD_URL} target="_blank" rel="noopener noreferrer">
-            <Button variant="outline" className="h-9 px-3.5 text-sm font-medium">
+            <Button variant="outline" className="h-11 px-3.5 text-sm font-medium">
               <DiscordIcon className="size-4" /> Join
             </Button>
           </a>
@@ -523,7 +574,7 @@ function ViewsChart({ data }) {
   const area = `${line} L${W},${H} L0,${H} Z`
 
   return (
-    <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" preserveAspectRatio="none">
+    <svg viewBox={`0 0 ${W} ${H}`} className="h-48 w-full" preserveAspectRatio="none" aria-hidden="true">
       <defs>
         <linearGradient id="viewsFill" x1="0" y1="0" x2="0" y2="1">
           <stop offset="0%" stopColor="#53fc18" stopOpacity="0.22" />
@@ -924,18 +975,18 @@ function Billing({ credits, plan }) {
                 {yearly ? `$${tier.price} billed yearly` : 'billed monthly'}
               </div>
               <div className="mt-2 flex-1 text-[13px] text-muted-foreground">{copy.credits}</div>
-              <Button
+              <InteractiveHoverButton
                 onClick={() => buy(tier.priceId)}
                 disabled={current || pending !== null}
-                variant={copy.highlight ? 'default' : 'outline'}
-                className="mt-5 h-10 w-full text-sm font-semibold"
-              >
-                {current
-                  ? 'Current plan'
-                  : pending === tier.priceId
-                    ? 'Opening checkout…'
-                    : `Upgrade to ${p.name}`}
-              </Button>
+                text={
+                  current
+                    ? 'Current plan'
+                    : pending === tier.priceId
+                      ? 'Opening checkout…'
+                      : `Upgrade to ${p.name}`
+                }
+                className="mt-5 h-11 w-full rounded-none border-2 py-0 text-sm font-semibold disabled:pointer-events-none disabled:opacity-50"
+              />
             </div>
           )
         })}
@@ -958,15 +1009,12 @@ function Billing({ credits, plan }) {
               </div>
               <div className="flex items-center gap-3">
                 <span className="text-2xl font-semibold tabular-nums tracking-tight">${pack.price}</span>
-                <Button
+                <InteractiveHoverButton
                   onClick={() => buy(pack.priceId)}
                   disabled={pending !== null}
-                  variant="outline"
-                  size="sm"
-                  className="font-medium"
-                >
-                  {pending === pack.priceId ? 'Opening…' : 'Buy'}
-                </Button>
+                  text={pending === pack.priceId ? 'Opening…' : 'Buy'}
+                  className="h-11 w-24 rounded-none border-2 py-0 text-xs font-medium disabled:pointer-events-none disabled:opacity-50"
+                />
               </div>
             </div>
           ))}
@@ -1063,7 +1111,7 @@ function SettingsTab() {
               <Button
                 onClick={() => navigate('/signin?next=/dashboard')}
                 variant="outline"
-                className="h-10 shrink-0 text-sm font-medium"
+                className="h-11 shrink-0 text-sm font-medium"
               >
                 <DiscordIcon className="size-4" /> Connect
               </Button>
@@ -1090,7 +1138,7 @@ function SettingsTab() {
               disabled={!profile || signingOut}
               onClick={handleSignOut}
               className={cn(
-                'h-10 shrink-0 text-sm font-medium',
+                'h-11 shrink-0 text-sm font-medium',
                 !profile && 'cursor-not-allowed',
               )}
             >
