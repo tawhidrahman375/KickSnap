@@ -1,5 +1,5 @@
 import { motion } from 'motion/react'
-import { Button } from '@/components/ui/button'
+import { InteractiveHoverButton } from '@/components/ui/interactive-hover-button'
 
 export default function FinalCTA() {
   return (
@@ -41,12 +41,10 @@ export default function FinalCTA() {
           transition={{ duration: 0.5, delay: 0.2 }}
           className="mt-10"
         >
-          <Button
-            size="lg"
-            className="h-14 bg-black px-10 text-base font-bold uppercase tracking-wide text-white hover:bg-black/85"
-          >
-            Get Started Free
-          </Button>
+          <InteractiveHoverButton
+            text="Get Started Free"
+            className="h-14 w-auto rounded-none border-2 border-black/20 bg-black px-10 py-0 text-base font-bold uppercase tracking-wide text-white [&_svg]:text-white"
+          />
         </motion.div>
       </div>
     </section>
