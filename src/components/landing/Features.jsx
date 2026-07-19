@@ -55,14 +55,14 @@ export default function Features() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border sm:grid-cols-2 lg:grid-cols-3">
+        <div className="mt-14 grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {FEATURES.map((feature, i) => {
             const Icon = feature.icon
             return (
               <Reveal
                 key={feature.title}
                 delay={(i % 3) * 0.08}
-                className="group relative bg-background p-8 transition-colors hover:bg-card"
+                className="group relative border-2 border-border p-8 transition-colors hover:border-foreground/30"
               >
                 <span className="absolute right-6 top-6 font-mono text-xs font-bold text-border">
                   0{i + 1}

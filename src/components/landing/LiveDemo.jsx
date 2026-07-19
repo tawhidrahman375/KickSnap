@@ -111,7 +111,7 @@ export default function LiveDemo() {
         <Reveal delay={0.1} className="mt-8">
           <div
             ref={frameRef}
-            className="relative rounded-xl border border-border bg-card p-2.5 shadow-2xl shadow-black/40"
+            className="relative rounded-xl border-2 border-border bg-card p-2.5"
           >
             {/* window chrome */}
             <div className="flex items-center gap-1.5 px-1.5 py-1.5">

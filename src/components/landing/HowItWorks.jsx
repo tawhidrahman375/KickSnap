@@ -1,4 +1,4 @@
-import { Upload, Wand2, Rocket } from 'lucide-react'
+import { Upload, Wand2, Rocket, ChevronRight } from 'lucide-react'
 import Reveal from './Reveal'
 import Eyebrow from './Eyebrow'
 
@@ -36,28 +36,32 @@ export default function HowItWorks() {
           </h2>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3">
+        <div className="mt-14 flex flex-col gap-4 md:flex-row md:items-stretch md:gap-0">
           {STEPS.map((step, i) => {
             const Icon = step.icon
             return (
-              <Reveal
-                key={step.step}
-                delay={i * 0.12}
-                className="relative bg-background p-8"
-              >
-                <div className="flex items-center justify-between">
-                  <span className="font-display text-6xl leading-none text-border">
-                    {step.step}
-                  </span>
+              <div key={step.step} className="flex flex-1 items-stretch">
+                <Reveal delay={i * 0.12} className="flex-1 border-2 border-border p-8">
                   <div className="flex size-12 items-center justify-center rounded-lg bg-kick/10 text-kick">
                     <Icon className="size-6" strokeWidth={2.5} />
                   </div>
-                </div>
-                <h3 className="mt-8 text-xl font-bold text-foreground">
-                  {step.title}
-                </h3>
-                <p className="mt-3 text-muted-foreground">{step.body}</p>
-              </Reveal>
+                  <div className="mt-8 flex items-baseline gap-3">
+                    <span className="font-display text-2xl leading-none text-kick">
+                      {step.step}
+                    </span>
+                    <h3 className="text-xl font-bold text-foreground">{step.title}</h3>
+                  </div>
+                  <p className="mt-3 text-muted-foreground">{step.body}</p>
+                </Reveal>
+                {i < STEPS.length - 1 && (
+                  <div
+                    aria-hidden
+                    className="hidden shrink-0 items-center justify-center px-2 md:flex"
+                  >
+                    <ChevronRight className="size-6 text-border" strokeWidth={2.5} />
+                  </div>
+                )}
+              </div>
             )
           })}
         </div>

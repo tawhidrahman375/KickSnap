@@ -37,22 +37,20 @@ export default function Problem() {
           </p>
         </Reveal>
 
-        <div className="mt-14 grid gap-px overflow-hidden rounded-xl border border-border bg-border md:grid-cols-3">
+        <div className="mt-14 divide-y divide-border border-y border-border">
           {PAINS.map((pain, i) => {
             const Icon = pain.icon
             return (
               <Reveal
                 key={pain.title}
                 delay={i * 0.1}
-                className="group bg-background p-8 transition-colors hover:bg-card"
+                className="flex flex-col gap-4 py-8 sm:flex-row sm:items-start sm:gap-8"
               >
-                <div className="flex size-12 items-center justify-center rounded-lg border border-destructive/40 bg-destructive/10 text-destructive">
-                  <Icon className="size-6" strokeWidth={2.5} />
+                <div className="flex shrink-0 items-center gap-4 sm:w-80">
+                  <Icon className="size-6 shrink-0 text-destructive" strokeWidth={2.5} />
+                  <h3 className="text-xl font-bold text-foreground">{pain.title}</h3>
                 </div>
-                <h3 className="mt-6 text-xl font-bold text-foreground">
-                  {pain.title}
-                </h3>
-                <p className="mt-3 text-muted-foreground">{pain.body}</p>
+                <p className="text-muted-foreground sm:flex-1 sm:pt-0.5">{pain.body}</p>
               </Reveal>
             )
           })}
