@@ -89,6 +89,26 @@ export default function ExportQuality() {
     dragging.current = false
   }
 
+  // Keyboard alternative to dragging — the divider is otherwise a pointer-only
+  // interaction, which would leave keyboard users with no way to see the
+  // comparison at all.
+  const onKeyDown = (e) => {
+    const step = e.shiftKey ? 20 : 5
+    if (e.key === 'ArrowLeft') {
+      e.preventDefault()
+      setPos((p) => Math.max(0, p - step))
+    } else if (e.key === 'ArrowRight') {
+      e.preventDefault()
+      setPos((p) => Math.min(100, p + step))
+    } else if (e.key === 'Home') {
+      e.preventDefault()
+      setPos(0)
+    } else if (e.key === 'End') {
+      e.preventDefault()
+      setPos(100)
+    }
+  }
+
   return (
     <section className="border-t border-border bg-background py-20 sm:py-24">
       <div className="mx-auto max-w-4xl px-6">
@@ -111,7 +131,16 @@ export default function ExportQuality() {
             onPointerDown={onPointerDown}
             onPointerMove={onPointerMove}
             onPointerUp={onPointerUp}
-            className="relative mx-auto aspect-[9/16] w-full max-w-xs cursor-ew-resize touch-none select-none overflow-hidden rounded-xl border border-border bg-black"
+            onKeyDown={onKeyDown}
+            tabIndex={0}
+            role="slider"
+            aria-label="Drag to compare CapCut export quality to KickSnap export quality"
+            aria-orientation="horizontal"
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-valuenow={Math.round(pos)}
+            aria-valuetext={`${Math.round(pos)}% CapCut shown, ${100 - Math.round(pos)}% KickSnap shown`}
+            className="relative mx-auto aspect-[9/16] w-full max-w-xs cursor-ew-resize touch-none select-none overflow-hidden rounded-xl border border-border bg-black focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-kick focus-visible:ring-offset-2 focus-visible:ring-offset-background"
           >
             {/* KickSnap export — crisp, full clip underneath */}
             {seen ? (

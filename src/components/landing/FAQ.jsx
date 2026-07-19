@@ -1,5 +1,5 @@
 import { useState } from 'react'
-import { AnimatePresence, motion } from 'motion/react'
+import { AnimatePresence, motion, useReducedMotion } from 'motion/react'
 import { ChevronDown } from 'lucide-react'
 import { cn } from '@/lib/utils'
 import Reveal from './Reveal'
@@ -40,11 +40,17 @@ const FAQS = [
   },
 ]
 
-function Item({ faq, open, onToggle }) {
+function Item({ faq, index, open, onToggle }) {
+  const reduce = useReducedMotion()
+  const buttonId = `faq-question-${index}`
+  const panelId = `faq-answer-${index}`
   return (
     <div className="border-b border-border">
       <button
+        id={buttonId}
         onClick={onToggle}
+        aria-expanded={open}
+        aria-controls={panelId}
         className="flex w-full items-center justify-between gap-4 py-5 text-left"
       >
         <span className="text-lg font-bold text-foreground">{faq.q}</span>
@@ -59,10 +65,13 @@ function Item({ faq, open, onToggle }) {
       <AnimatePresence initial={false}>
         {open && (
           <motion.div
-            initial={{ height: 0, opacity: 0 }}
+            id={panelId}
+            role="region"
+            aria-labelledby={buttonId}
+            initial={reduce ? false : { height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
-            exit={{ height: 0, opacity: 0 }}
-            transition={{ duration: 0.3, ease: 'easeInOut' }}
+            exit={reduce ? { opacity: 1 } : { height: 0, opacity: 0 }}
+            transition={{ duration: reduce ? 0 : 0.3, ease: 'easeInOut' }}
             className="overflow-hidden"
           >
             <p className="pb-5 pr-10 text-muted-foreground">{faq.a}</p>
@@ -91,6 +100,7 @@ export default function FAQ() {
             <Item
               key={faq.q}
               faq={faq}
+              index={i}
               open={openIndex === i}
               onToggle={() => setOpenIndex(openIndex === i ? -1 : i)}
             />
